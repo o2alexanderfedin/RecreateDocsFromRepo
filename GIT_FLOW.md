@@ -7,9 +7,9 @@ This repository follows the Git Flow workflow with an additional `release/curren
 - `main` - Production-ready code (stable)
 - `develop` - Next release development branch
 - `feature/*` - Feature branches
-- `release/*` - Release preparation branches
+- `release/*` - Release preparation branches (always delete versioned release branches after finalization)
 - `hotfix/*` - Hotfix branches for production issues
-- `release/current` - Always points to the latest stable release (currently v0.7.0)
+- `release/current` - Always points to the latest stable release (currently v0.10.0)
 
 ## Workflow
 
@@ -57,6 +57,10 @@ git push origin --tags
 
 # Update release/current branch to point to the latest release
 ./git-flow-update-current
+
+# Delete the release branch after finalizing
+git branch -d release/x.y.z
+git push origin --delete release/x.y.z
 ```
 
 ### Hotfix Process
@@ -79,6 +83,10 @@ git push origin --tags
 
 # Update release/current branch to point to the latest release
 ./git-flow-update-current
+
+# Delete the release branch after finalizing
+git branch -d release/x.y.z
+git push origin --delete release/x.y.z
 ```
 
 ## Using release/current
