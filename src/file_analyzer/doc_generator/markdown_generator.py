@@ -193,10 +193,10 @@ class MarkdownGenerator:
                     file_framework_details.append(repo_fw)
                     break
         
-        # Get code snippet if enabled
+        # We've moved away from code snippets to direct links to source files
         code_snippet = None
-        if self.config.include_code_snippets:
-            code_snippet = self._get_code_snippet(file_path)
+        # Keep the parameter in context for backward compatibility
+        # but the value will always be None
         
         # Get file relationships if enabled
         relationships = None
@@ -370,22 +370,14 @@ class MarkdownGenerator:
         return file_path
     
     def _get_code_snippet(self, file_path: str) -> Optional[str]:
-        """Get a code snippet from the file."""
-        try:
-            with open(file_path, 'r', encoding='utf-8', errors='replace') as f:
-                lines = f.readlines()
-                
-            # Limit to max lines
-            if len(lines) > self.config.max_code_snippet_lines:
-                snippet_lines = lines[:self.config.max_code_snippet_lines]
-                snippet_lines.append(f"# ... {len(lines) - self.config.max_code_snippet_lines} more lines ...\n")
-            else:
-                snippet_lines = lines
-                
-            return ''.join(snippet_lines)
-        except Exception as e:
-            logger.warning(f"Could not get code snippet for {file_path}: {str(e)}")
-            return None
+        """
+        Get a code snippet from the file.
+        
+        Note: This method is deprecated as we now use direct links to source files
+        instead of embedding code snippets. Kept for backward compatibility.
+        """
+        logger.debug(f"Code snippets have been replaced with direct links to source files")
+        return None
     
     def _get_file_relationships(
         self, 
@@ -525,9 +517,26 @@ class MarkdownGenerator:
             return f"{language}_file.md.j2"
         
         # Special case for web-related files
-        if language in ["html", "css", "javascript", "typescript"] or file_type in ["html", "css", "javascript", "typescript"]:
+        if language in ["html", "css"] or file_type in ["html", "css"]:
             if "web_file.md.j2" in available_templates:
                 return "web_file.md.j2"
+        
+        # Special case for JavaScript/TypeScript files
+        if language in ["javascript", "typescript", "jsx", "tsx"] or file_type in ["javascript", "typescript"]:
+            if "javascript_file.md.j2" in available_templates:
+                return "javascript_file.md.j2"
+            elif "web_file.md.j2" in available_templates:  # Fallback to web_file if javascript template doesn't exist
+                return "web_file.md.j2"
+        
+        # Special case for Java files
+        if language in ["java", "kotlin"] or file_type in ["java", "kotlin"]:
+            if "java_file.md.j2" in available_templates:
+                return "java_file.md.j2"
+        
+        # Special case for C/C++ files
+        if language in ["c", "cpp", "c++"] or file_type in ["c", "cpp", "c++"]:
+            if "c_cpp_file.md.j2" in available_templates:
+                return "c_cpp_file.md.j2"
         
         # Special case for configuration files
         if file_type == "config" or language in ["json", "yaml", "toml", "ini"]:
@@ -597,9 +606,21 @@ class MarkdownGenerator:
             patterns.append(f"import static {module_name}")
             
         # C/C++ specific patterns
-        elif ext in ['.c', '.cpp', '.h', '.hpp']:
+        elif ext in ['.c', '.cpp', '.h', '.hpp', '.cc', '.cxx', '.c++', '.hxx', '.h++']:
+            # Handle different include patterns
             patterns.append(f'#include "{module_name}')
+            patterns.append(f'#include "{module_name}.h')
+            patterns.append(f'#include "{module_name}.hpp')
             patterns.append(f'#include <{module_name}')
+            patterns.append(f'#include <{module_name}.h')
+            patterns.append(f'#include <{module_name}.hpp')
+            
+            # Handle directory-based includes
+            file_dir = os.path.dirname(file_path)
+            dir_name = os.path.basename(file_dir)
+            if dir_name:
+                patterns.append(f'#include "{dir_name}/{module_name}')
+                patterns.append(f'#include <{dir_name}/{module_name}')
         
         return patterns
 

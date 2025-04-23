@@ -45,13 +45,9 @@ This file contains configuration settings {% if language %}in {{ language }} for
 {% endif %}
 {% endif %}
 
-{% if code_snippet %}
-## Configuration Content
+## Source Code
 
-```{% if language %}{{ language|lower }}{% else %}text{% endif %}
-{{ code_snippet }}
-```
-{% endif %}
+📄 [View source file]({{ rel_path }})
 
 ---
 

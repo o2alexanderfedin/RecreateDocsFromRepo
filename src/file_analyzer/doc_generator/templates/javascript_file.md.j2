@@ -1,31 +1,52 @@
-# File: {{ file_path }}
+# JavaScript Module: {{ file_path }}
 
 ## Overview
 
 **Type:** {{ file_type }}  
-**Language:** {{ language }}  
+**Language:** JavaScript  
 {% if frameworks %}**Frameworks:** {{ frameworks|map(attribute='name')|join(", ") }}{% endif %}
 
-## Content Analysis
+## Module Structure
 
 {% if classes %}
-### Classes
+### Classes & Components
 
 {% for class in classes %}
-#### {{ class.name }}
+#### `class {{ class.name }}{% if class.extends %} extends {{ class.extends }}{% endif %}`
 
 {% if class.documentation %}{{ class.documentation }}{% endif %}
 
+{% if class.methods %}
 **Methods:**
-{% for method in class.methods %}
-- `{{ method }}`
-{% endfor %}
 
+| Method | Parameters | Description |
+|--------|------------|-------------|
+{% for method in class.methods %}
+| `{{ method.name }}` | `{{ method.parameters|join(", ") }}` | {% if method.documentation %}{{ method.documentation|truncate(50) }}{% endif %} |
+{% endfor %}
+{% endif %}
+
+{% if class.properties %}
 **Properties:**
+
+| Property | Type | Description |
+|----------|------|-------------|
 {% for prop in class.properties %}
-- `{{ prop }}`
+| `{{ prop.name }}` | {% if prop.type %}{{ prop.type }}{% else %}-{% endif %} | {% if prop.documentation %}{{ prop.documentation }}{% endif %} |
 {% endfor %}
+{% endif %}
+
 {% endfor %}
+{% endif %}
+
+{% if imports %}
+### Imports/Requires
+
+```javascript
+{% for import in imports %}
+{{ import }}
+{% endfor %}
+```
 {% endif %}
 
 {% if functions %}
@@ -35,25 +56,23 @@
 #### `{{ function.name }}({{ function.parameters|join(", ") }})`
 
 {% if function.documentation %}{{ function.documentation }}{% endif %}
+
+**Parameters:**
+{% for param in function.parameters %}
+- `{{ param }}`
+{% endfor %}
+
 {% endfor %}
 {% endif %}
 
 {% if variables %}
-### Variables
+### Module Variables/Constants
 
+| Name | Type | Description |
+|------|------|-------------|
 {% for variable in variables %}
-- `{{ variable.name }}` ({{ variable.scope }})
+| `{{ variable.name }}` | {% if variable.scope == "const" %}constant{% else %}variable{% endif %} | {% if variable.documentation %}{{ variable.documentation }}{% endif %} |
 {% endfor %}
-{% endif %}
-
-{% if imports %}
-### Imports
-
-```{% if language %}{{ language }}{% else %}text{% endif %}
-{% for import in imports %}
-{{ import }}
-{% endfor %}
-```
 {% endif %}
 
 {% if framework_details %}
@@ -74,14 +93,15 @@
 {% endif %}
 {% endfor %}
 {% endif %}
+
 {% endfor %}
 {% endif %}
 
 {% if relationships %}
-## Relationships
+## Module Dependencies
 
 {% if relationships.imports %}
-### Imports Files
+### Imports Modules
 {% for import_file in relationships.imports %}
 - [{{ import_file }}]({{ import_file }}.md)
 {% endfor %}
@@ -93,16 +113,9 @@
 - [{{ imported_by_file }}]({{ imported_by_file }}.md)
 {% endfor %}
 {% endif %}
-
-{% if relationships.related %}
-### Related Files
-{% for related_file in relationships.related %}
-- [{{ related_file }}]({{ related_file }}.md)
-{% endfor %}
-{% endif %}
 {% endif %}
 
-## Source File
+## Source Code
 
 📄 [View source file]({{ rel_path }})
 
