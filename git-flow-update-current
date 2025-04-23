@@ -117,7 +117,6 @@ git checkout "$ORIGINAL_BRANCH" 2>/dev/null || git checkout develop
 echo "✅ Release process completed for $LATEST_TAG"
 echo "✅ All branches (main, develop, release/current) are up to date"
 echo "✅ Tags have been pushed to remote"
-echo "⚠️  IMPORTANT: Delete the versioned release branch after finalizing:"
+echo "⚠️  IMPORTANT: Delete the versioned release branch locally after finalizing:"
 echo "    git branch -d $RELEASE_BRANCH"
-echo "    git push origin --delete $RELEASE_BRANCH"
 echo "    (Replace $RELEASE_BRANCH with your actual versioned branch, e.g., release/0.10.0)"

@@ -58,10 +58,9 @@ git push origin --tags
 # Update release/current branch to point to the latest release
 ./git-flow-update-current
 
-# Delete the versioned release branch after finalizing
+# Delete the versioned release branch locally after finalizing
 # Replace 0.10.0 with your actual version number
 git branch -d release/0.10.0
-git push origin --delete release/0.10.0
 ```
 
 ### Hotfix Process
@@ -85,10 +84,9 @@ git push origin --tags
 # Update release/current branch to point to the latest release
 ./git-flow-update-current
 
-# Delete the versioned release branch after finalizing
+# Delete the versioned release branch locally after finalizing
 # Replace 0.10.0 with your actual version number
 git branch -d release/0.10.0
-git push origin --delete release/0.10.0
 ```
 
 ## Using release/current
