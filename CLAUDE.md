@@ -13,12 +13,16 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   1. Start feature: `git flow feature start CATEGORY-NUMBER-TASK-NUMBER-description`
      - Alternative: `git checkout -b feature/CATEGORY-NUMBER-TASK-NUMBER-description develop`
   2. Develop with TDD (tests first, then implementation)
-  3. Finish feature: `git flow feature finish FEATURE-NAME`
+  3. Make final implementation commit with issue closing reference:
+     - `git commit -m "Implement feature description. Closes #ISSUE-NUMBER"`
+  4. Finish feature: `git flow feature finish FEATURE-NAME`
      - Alternative manual steps:
        a. `git checkout develop`
        b. `git merge --no-ff feature/branch-name -m "Merge feature/branch-name: Description"`
        c. `git push origin develop`
        d. `git branch -d feature/branch-name && git push origin --delete feature/branch-name`
+  5. If issue wasn't closed automatically (missing keyword in commit):
+     - `gh issue close ISSUE-NUMBER --reason completed`
   
 - For releases:
   1. Start release: `git flow release start VERSION`
@@ -46,6 +50,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - When working on an issue, use the format: `feature/CATEGORY-NUMBER-TASK-NUMBER-description`
 - Example: `feature/DOC-04-TASK-03-file-relationship-linkage`
 - Always reference the issue number in commit messages
+- Close issues automatically when work is complete:
+  - Include "Closes #ISSUE-NUMBER" or "Fixes #ISSUE-NUMBER" in commit message
+  - Example: `git commit -m "Implement file relationship linkage. Closes #43"`
+  - Alternative (if commit message didn't include close keyword):
+    - Use GitHub CLI: `gh issue close ISSUE-NUMBER --reason completed`
+    - Add comment with close: `gh issue comment ISSUE-NUMBER --body "Completed in commit SHA"`
 
 ## Branch Strategy (Git Flow)
 - `main`: Production-ready code, only updated through:
