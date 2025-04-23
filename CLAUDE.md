@@ -24,7 +24,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   1. Start release: `git flow release start VERSION`
   2. Make version bump and final adjustments
   3. Finish release: `git flow release finish VERSION`
+     - This merges to both main and develop, creates a tag
   4. Push changes: `git push origin develop && git push origin main && git push --tags`
+
+- For hotfixes (production bugs):
+  1. Start hotfix: `git flow hotfix start VERSION`
+  2. Implement and test the fix
+  3. Update version numbers and CHANGELOG.md
+  4. Finish hotfix: `git flow hotfix finish VERSION`
+     - This merges to both main and develop, creates a tag
+  5. Push changes: `git push origin develop && git push origin main && git push --tags`
+
+- Emergency procedure (avoid when possible):
+  1. Direct main update: `git checkout main`
+  2. Make changes and test thoroughly
+  3. Commit: `git commit -m "Emergency fix: description"`
+  4. Push main: `git push origin main`
+  5. Sync to develop: `git checkout develop && git merge main && git push origin develop`
 
 ## Issue Management
 - When working on an issue, use the format: `feature/CATEGORY-NUMBER-TASK-NUMBER-description`
@@ -32,17 +48,22 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Always reference the issue number in commit messages
 
 ## Branch Strategy (Git Flow)
-- `main`: Production-ready code, only merge from release or hotfix branches
+- `main`: Production-ready code, only updated through:
+  - Merges from release branches (new versions)
+  - Merges from hotfix branches (bug fixes)
+  - Emergency direct fixes (exceptional cases only)
 - `develop`: Integration branch for features, primary development branch
 - `feature/*`: Individual feature branches, branch from and merge to develop
-- `release/*`: Release preparation branches, branch from develop and merge to main and develop
-- `hotfix/*`: Emergency fixes for production, branch from main and merge to main and develop
+- `release/*`: Release preparation branches, branch from develop and merge to main AND develop
+- `hotfix/*`: Emergency fixes for production, branch from main and merge to main AND develop
 - No pull requests - use direct merges following Git Flow conventions
 - Run git flow commands when appropriate:
   - Start feature: `git flow feature start FEATURE-NAME`
   - Finish feature: `git flow feature finish FEATURE-NAME`
   - Start release: `git flow release start VERSION`
   - Finish release: `git flow release finish VERSION`
+  - Start hotfix: `git flow hotfix start VERSION`
+  - Finish hotfix: `git flow hotfix finish VERSION`
 
 ## Build/Test Commands
 - Install: `pip install -r requirements.txt`
