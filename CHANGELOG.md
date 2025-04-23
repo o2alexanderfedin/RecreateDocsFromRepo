@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.10.0] - 2025-04-23
+
+### Added
+- AI Documentation Generator system:
+  - AI-powered documentation for all file types
+  - File purpose and component descriptions
+  - Usage examples and architecture notes
+  - Integration with existing templates
+- File Relationship Linkage system:
+  - Dependency graph visualization with Mermaid.js
+  - Enhanced relationship detection for inheritance hierarchies
+  - Key files identification in documentation index
+  - Cross-linking between related files
+- Development process improvements:
+  - Enhanced Git Flow process documentation
+  - Hierarchical issue management (epics/stories/tasks)
+
 ## [0.9.0] - 2025-04-23
 
 ### Added

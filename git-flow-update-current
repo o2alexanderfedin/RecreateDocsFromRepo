@@ -1,23 +1,53 @@
 #!/bin/bash
 #
-# Update release/current to point to the latest release tag and close issues
+# Update release branches, ensure proper merges, and close issues
 #
-# This script should be run after finishing a release with git flow
+# This script handles:
+# 1. Updating release/current to the latest release tag
+# 2. Creating/updating release/x.y.z branch to match the tag
+# 3. Ensuring all changes are merged properly between branches
+# 4. Pushing all branches and tags to remote
+# 5. Closing related GitHub issues
+#
 # It assumes that the most recent tag is the latest release
 #
 
 # Get the latest version tag
 LATEST_TAG=$(git tag --sort=-v:refname | head -n 1)
+RELEASE_NAME=${LATEST_TAG#v}  # Remove 'v' prefix if present
 
-echo "Updating release/current to point to $LATEST_TAG..."
+echo "Handling release process for $LATEST_TAG..."
 
 # Get the original branch
 ORIGINAL_BRANCH=$(git branch --show-current)
 
-# Update the release/current branch
+# Step 1: Update release/current branch
+echo "Updating release/current to point to $LATEST_TAG..."
 git checkout release/current 2>/dev/null || git checkout -b release/current "$LATEST_TAG"
 git reset --hard "$LATEST_TAG"
 git push --force origin release/current
+
+# Step 2: Create or update release/x.y.z branch
+echo "Creating/updating release/$RELEASE_NAME branch..."
+RELEASE_BRANCH="release/$RELEASE_NAME"
+if git show-ref --verify --quiet refs/heads/$RELEASE_BRANCH; then
+    git checkout $RELEASE_BRANCH
+    git reset --hard "$LATEST_TAG"
+else
+    git checkout -b $RELEASE_BRANCH "$LATEST_TAG"
+fi
+git push --force origin $RELEASE_BRANCH
+
+# Step 3: Ensure main branch is up to date
+echo "Ensuring main branch is up to date with release..."
+git checkout main
+# Check if main already contains the tag commit
+if ! git merge-base --is-ancestor "$LATEST_TAG" HEAD; then
+    git merge --no-ff "$LATEST_TAG" -m "Merge release $LATEST_TAG into main"
+    git push origin main
+else
+    echo "Main branch already contains release $LATEST_TAG"
+fi
 
 # Check for issues to close
 echo "Checking for issues to close in this release..."
@@ -66,8 +96,24 @@ EOF
     fi
 fi
 
-# Return to the original branch
-git checkout "$ORIGINAL_BRANCH" 2>/dev/null || git checkout main
+# Step 4: Merge changes back to develop branch
+echo "Ensuring develop branch is up to date with release changes..."
+git checkout develop
+# Check if develop already contains the tag commit
+if ! git merge-base --is-ancestor "$LATEST_TAG" HEAD; then
+    git merge --no-ff "$LATEST_TAG" -m "Merge release $LATEST_TAG back to develop"
+    git push origin develop
+else
+    echo "Develop branch already contains release $LATEST_TAG"
+fi
 
-echo "release/current now points to $LATEST_TAG"
-echo "Remember to run this script after completing a release with git flow"
+# Step 5: Push any tags that haven't been pushed yet
+echo "Pushing tags to remote..."
+git push --tags
+
+# Return to the original branch
+git checkout "$ORIGINAL_BRANCH" 2>/dev/null || git checkout develop
+
+echo "✅ Release process completed for $LATEST_TAG"
+echo "✅ All branches (main, develop, $RELEASE_BRANCH, release/current) are up to date"
+echo "✅ Tags have been pushed to remote"

@@ -1,0 +1,58 @@
+## File Dependency Graph
+
+```mermaid
+graph TD
+    %% Current file node (highlighted)
+    {{ graph_data.current_file|replace("/", "_")|replace(".", "_") }}["{{ graph_data.current_file }}"]
+    class {{ graph_data.current_file|replace("/", "_")|replace(".", "_") }} current
+    
+    %% Relationship nodes and edges
+    {% for edge in graph_data.edges %}
+    {% set from_id = edge.from|replace("/", "_")|replace(".", "_") %}
+    {% set to_id = edge.to|replace("/", "_")|replace(".", "_") %}
+    {% if edge.bidirectional %}
+    {{ from_id }} -- "{{ edge.label }}" --- {{ to_id }}
+    {% else %}
+    {{ from_id }} -- "{{ edge.label }}" --> {{ to_id }}
+    {% endif %}
+    {% endfor %}
+    
+    %% Node styling by relationship type
+    {% for node in graph_data.nodes %}
+    {% if node.type != "current" %}
+    {% set node_id = node.id|replace("/", "_")|replace(".", "_") %}
+    class {{ node_id }} {{ node.type }}
+    {% endif %}
+    {% endfor %}
+    
+    %% Click behavior for nodes
+    {% for node in graph_data.nodes %}
+    {% set node_id = node.id|replace("/", "_")|replace(".", "_") %}
+    click {{ node_id }} "{{ node.id }}.md" "Go to {{ node.id }}"
+    {% endfor %}
+```
+
+<style>
+    .mermaid .current > rect { 
+        fill: #f8f9fa !important; 
+        stroke: #343a40 !important; 
+        stroke-width: 2px !important;
+    }
+    .mermaid .imports > rect { fill: #3498db !important; }
+    .mermaid .imported_by > rect { fill: #2ecc71 !important; }
+    .mermaid .inherits_from > rect { fill: #e74c3c !important; }
+    .mermaid .inherited_by > rect { fill: #9b59b6 !important; }
+    .mermaid .references > rect { fill: #f1c40f !important; }
+    .mermaid .referenced_by > rect { fill: #1abc9c !important; }
+    .mermaid .related > rect { fill: #95a5a6 !important; }
+</style>
+
+### Relationship Legend
+
+- **Imports** (blue): This file imports code from the related file
+- **Imported By** (green): The related file imports code from this file
+- **Inherits From** (red): This file contains classes that inherit from classes in the related file
+- **Inherited By** (purple): Classes in this file are inherited by classes in the related file
+- **References** (yellow): This file references functions or methods from the related file
+- **Referenced By** (teal): Functions or methods in this file are referenced by the related file
+- **Related** (gray): Files that share similar types or classes

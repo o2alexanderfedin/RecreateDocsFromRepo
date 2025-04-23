@@ -139,7 +139,8 @@ class TestCLI:
                 main()
                 
         mock_load.assert_called_once_with("/tmp/analysis.json")
-        mock_generate.assert_called_once()
+        # We don't check the exact call because the arguments have changed
+        assert mock_generate.call_count == 1
         
     @patch('file_analyzer.doc_generator.cli.RepositoryScanner')
     @patch('file_analyzer.doc_generator.cli.generate_documentation')
@@ -170,4 +171,5 @@ class TestCLI:
             repo_path="repo_path",
             exclude_patterns=[]
         )
-        mock_generate.assert_called_once()
+        # We don't check the exact call because the arguments have changed
+        assert mock_generate.call_count == 1
