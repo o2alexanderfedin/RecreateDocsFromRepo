@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved AI provider interface with runtime imports to avoid circular dependencies
 - Enhanced error handling with better logging
 - Updated test infrastructure to support real API testing with environment variables
+- Updated package exports to include new framework components
+- Improved code structure to more cleanly separate concerns
 
 ### Fixed
 - Fixed circular import issues between modules
