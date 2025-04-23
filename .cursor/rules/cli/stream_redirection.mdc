@@ -1,0 +1,39 @@
+---
+name: CLI Stream Redirection Pattern
+description: Using process substitution (`<(echo ...)`) to provide multi-line input to commands that accept file input
+globs: 
+alwaysApply: true
+---
+
+# CLI Stream Redirection Pattern
+
+## Description
+Using process substitution (`<(echo ...)`) to provide multi-line input to commands that accept file input.
+
+## Applications
+- GitHub CLI body and comment parameters
+- Git commit messages
+- Any command that accepts file input
+
+## Examples
+```bash
+# GitHub CLI
+gh issue edit 1 --body-file <(echo '...')
+
+# Git commit messages
+git commit -F <(echo "type(scope): description\n\n- bullet point 1\n- bullet point 2")
+
+# Any command accepting file input
+diff <(echo "content1") <(echo "content2")
+```
+
+## Benefits
+- Avoids creating temporary files
+- Cleaner than multiple `-m` flags or escaped newlines
+- Works with any command that accepts file input
+- Maintains readability of multi-line content
+
+## Implementation Notes
+- Requires shell that supports process substitution (bash, zsh)
+- Content should be properly escaped for the shell
+- Works best with commands that accept file input via flags 
