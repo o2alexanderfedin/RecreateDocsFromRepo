@@ -1,0 +1,66 @@
+[
+  {
+    "id": "REPO-01",
+    "title": "File Type Detection",
+    "priority": "P1",
+    "file_path": "docs/epics/01-repository-analysis/01-file-type-detection.md",
+    "epic": "Repository Analysis",
+    "epic_issue_url": "https://github.com/o2alexanderfedin/RecreateDocsFromRepo/issues/1"
+  },
+  {
+    "id": "REPO-02",
+    "title": "Primary Language Support",
+    "priority": "P1",
+    "file_path": "docs/epics/01-repository-analysis/02-language-support-primary.md",
+    "epic": "Repository Analysis",
+    "epic_issue_url": "https://github.com/o2alexanderfedin/RecreateDocsFromRepo/issues/1"
+  },
+  {
+    "id": "REPO-03",
+    "title": "Secondary Language Support",
+    "priority": "P2",
+    "file_path": "docs/epics/01-repository-analysis/03-language-support-secondary.md",
+    "epic": "Repository Analysis",
+    "epic_issue_url": "https://github.com/o2alexanderfedin/RecreateDocsFromRepo/issues/1"
+  },
+  {
+    "id": "REPO-04",
+    "title": "Config File Analysis",
+    "priority": "P1",
+    "file_path": "docs/epics/01-repository-analysis/04-config-file-analysis.md",
+    "epic": "Repository Analysis",
+    "epic_issue_url": "https://github.com/o2alexanderfedin/RecreateDocsFromRepo/issues/1"
+  },
+  {
+    "id": "REPO-05",
+    "title": "Relationship Mapping",
+    "priority": "P2",
+    "file_path": "docs/epics/01-repository-analysis/05-relationship-mapping.md",
+    "epic": "Repository Analysis",
+    "epic_issue_url": "https://github.com/o2alexanderfedin/RecreateDocsFromRepo/issues/1"
+  },
+  {
+    "id": "DOC-01",
+    "title": "File Metadata Documentation",
+    "priority": "P1",
+    "file_path": "docs/epics/02-documentation-generation/01-file-metadata-documentation.md",
+    "epic": "Documentation Generation",
+    "epic_issue_url": "https://github.com/o2alexanderfedin/RecreateDocsFromRepo/issues/2"
+  },
+  {
+    "id": "DOC-02",
+    "title": "UML Diagram Generation",
+    "priority": "P1",
+    "file_path": "docs/epics/02-documentation-generation/02-uml-diagram-generation.md",
+    "epic": "Documentation Generation",
+    "epic_issue_url": "https://github.com/o2alexanderfedin/RecreateDocsFromRepo/issues/2"
+  },
+  {
+    "id": "DOC-03",
+    "title": "Documentation Organization",
+    "priority": "P1",
+    "file_path": "docs/epics/02-documentation-generation/03-documentation-organization.md",
+    "epic": "Documentation Generation",
+    "epic_issue_url": "https://github.com/o2alexanderfedin/RecreateDocsFromRepo/issues/2"
+  }
+] 
