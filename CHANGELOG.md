@@ -5,6 +5,44 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.8.0] - 2025-04-23
+
+### Added
+- Git Flow workflow enhancements:
+  - Added `release/current` branch that always points to the latest stable release
+  - Created automation script (`git-flow-update-current`) to maintain the current release branch
+  - Added GitHub Actions workflow for automated issue management
+  - Implemented automatic issue closing when features are completed
+  - Added comprehensive Git Flow documentation
+- CI/CD improvements:
+  - Test execution on feature completion
+  - Issue management automation
+  - Release tracking
+
+### Changed
+- Enhanced release process to include issue management
+- Updated documentation to include branch naming conventions for issue tracking
+- Improved feature workflow with automatic issue closing
+
+## [0.7.0] - 2025-04-23
+
+### Added
+- Per-file documentation generator:
+  - Markdown document generation for each file in a repository
+  - Multiple template types for different languages and file types
+  - File relationship detection and linking
+  - Directory structure mirroring for documentation
+  - Command-line interface for documentation generation
+- New templates for different file types:
+  - Python-specific template
+  - Web files (HTML, CSS, JavaScript) template
+  - Configuration files template
+  - Documentation files template
+- Comprehensive documentation:
+  - Command-line usage examples
+  - Template customization guides
+  - API documentation
+
 ## [0.6.0] - 2025-04-23
 
 ### Added
