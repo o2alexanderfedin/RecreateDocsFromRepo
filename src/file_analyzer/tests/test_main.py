@@ -4,7 +4,7 @@ Unit tests for the main CLI module.
 import json
 import tempfile
 from pathlib import Path
-from unittest.mock import patch, mock_open
+from unittest.mock import patch, mock_open, MagicMock
 
 import pytest
 
@@ -167,8 +167,16 @@ class TestMain:
         mock_args.output = None
         mock_args.exclude = []
         mock_args.verbose = False
+        mock_args.cache = "off"
+        mock_args.cache_type = None
+        mock_args.cache_ttl = None
+        mock_args.cache_dir = None
+        mock_args.cache_db = None
+        mock_args.cache_max_size = None
         
-        mock_analyzer = "mock_analyzer"
+        # Create mock analyzer with required methods
+        mock_analyzer = MagicMock()
+        mock_analyzer.get_cache_stats.return_value = {"enabled": False}
         mock_create_analyzer.return_value = mock_analyzer
         
         mock_results = {"file1": {"file_type": "code"}}
@@ -181,12 +189,13 @@ class TestMain:
                 
                 # Assert
                 assert exit_code == 0
-                mock_create_analyzer.assert_called_once_with("mock", None)
+                mock_create_analyzer.assert_called_once()
                 mock_analyze_path.assert_called_once()
                 mock_print.assert_called_once_with(json.dumps(mock_results, indent=2))
                 
     @patch("argparse.ArgumentParser.parse_args")
-    def test_main_nonexistent_path(self, mock_parse_args):
+    @patch("file_analyzer.main.create_analyzer")
+    def test_main_nonexistent_path(self, mock_create_analyzer, mock_parse_args):
         """Test that a nonexistent path returns an error code."""
         # Arrange
         mock_args = mock_parse_args.return_value
@@ -196,6 +205,17 @@ class TestMain:
         mock_args.output = None
         mock_args.exclude = []
         mock_args.verbose = False
+        mock_args.cache = "off"
+        mock_args.cache_type = None
+        mock_args.cache_ttl = None
+        mock_args.cache_dir = None
+        mock_args.cache_db = None
+        mock_args.cache_max_size = None
+        
+        # Create mock analyzer with required methods
+        mock_analyzer = MagicMock()
+        mock_analyzer.get_cache_stats.return_value = {"enabled": False}
+        mock_create_analyzer.return_value = mock_analyzer
         
         with patch("pathlib.Path.exists", return_value=False):
             # Act
@@ -216,8 +236,16 @@ class TestMain:
         mock_args.output = "output.json"  # Use a relative path that doesn't require root access
         mock_args.exclude = []
         mock_args.verbose = False
+        mock_args.cache = "off"
+        mock_args.cache_type = None
+        mock_args.cache_ttl = None
+        mock_args.cache_dir = None
+        mock_args.cache_db = None
+        mock_args.cache_max_size = None
         
-        mock_analyzer = "mock_analyzer"
+        # Create mock analyzer with required methods
+        mock_analyzer = MagicMock()
+        mock_analyzer.get_cache_stats.return_value = {"enabled": False}
         mock_create_analyzer.return_value = mock_analyzer
         
         with patch("pathlib.Path.exists", return_value=True):

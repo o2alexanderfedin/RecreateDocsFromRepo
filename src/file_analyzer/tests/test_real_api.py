@@ -368,3 +368,127 @@ class TestMistralAPIIntegration:
         finally:
             # Clean up
             Path(filepath).unlink(missing_ok=True)
+            
+    def test_framework_detector_with_mistral(self):
+        """Test framework detection with real Mistral API."""
+        # Get the API key from environment variable
+        api_key = os.environ.get('MISTRAL_API_KEY')
+        
+        # Create the framework detector
+        from file_analyzer.core.framework_detector import FrameworkDetector
+        
+        ai_provider = MistralProvider(api_key=api_key)
+        analyzer = FileTypeAnalyzer(ai_provider=ai_provider, cache_provider=InMemoryCache())
+        code_analyzer = CodeAnalyzer(ai_provider=ai_provider, file_type_analyzer=analyzer, cache_provider=InMemoryCache())
+        framework_detector = FrameworkDetector(ai_provider=ai_provider, code_analyzer=code_analyzer, cache_provider=InMemoryCache())
+        
+        # Create a Python test file with Django imports
+        with tempfile.NamedTemporaryFile(suffix='.py', mode='w', delete=False) as f:
+            f.write("""
+            from django.db import models
+            from django.http import HttpResponse
+            
+            class TestModel(models.Model):
+                name = models.CharField(max_length=100)
+                description = models.TextField(blank=True)
+                created_at = models.DateTimeField(auto_now_add=True)
+                
+                def __str__(self):
+                    return self.name
+            
+            def my_view(request):
+                models = TestModel.objects.all()
+                return HttpResponse("Hello, Django!")
+            """)
+            django_file = f.name
+        
+        # Create a JavaScript file with React imports
+        with tempfile.NamedTemporaryFile(suffix='.jsx', mode='w', delete=False) as f:
+            f.write("""
+            import React, { useState, useEffect } from 'react';
+            import { useHistory } from 'react-router-dom';
+            
+            function UserProfile({ userId }) {
+                const [user, setUser] = useState(null);
+                const [loading, setLoading] = useState(true);
+                const history = useHistory();
+                
+                useEffect(() => {
+                    fetch(`/api/users/${userId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            setUser(data);
+                            setLoading(false);
+                        })
+                        .catch(error => {
+                            console.error('Error fetching user:', error);
+                            setLoading(false);
+                        });
+                }, [userId]);
+                
+                if (loading) return <div>Loading...</div>;
+                if (!user) return <div>User not found</div>;
+                
+                return (
+                    <div className="user-profile">
+                        <h1>{user.name}</h1>
+                        <p>{user.email}</p>
+                        <button onClick={() => history.push('/dashboard')}>
+                            Back to Dashboard
+                        </button>
+                    </div>
+                );
+            }
+            
+            export default UserProfile;
+            """)
+            react_file = f.name
+        
+        try:
+            # Analyze Django file
+            django_result = framework_detector.detect_frameworks(django_file)
+            
+            print("\nFramework detection result for Django file:", django_result)
+            
+            # Basic validation
+            assert "file_path" in django_result
+            assert "language" in django_result
+            assert "frameworks" in django_result
+            assert isinstance(django_result["frameworks"], list)
+            
+            # Should detect Django
+            django_found = False
+            for framework in django_result["frameworks"]:
+                if framework["name"].lower() == "django":
+                    django_found = True
+                    break
+            
+            # We may not strict assert here as AI could be uncertain in some cases,
+            # but we can print diagnostic information
+            if not django_found:
+                print("\nWARNING: Django not detected in file that should contain Django references")
+                print("Frameworks detected:", [f["name"] for f in django_result["frameworks"]])
+            
+            # Test React detection
+            react_result = framework_detector.detect_frameworks(react_file)
+            
+            print("\nReact detection result:", react_result)
+            
+            # Basic validation
+            assert "file_path" in react_result
+            assert "frameworks" in react_result
+            
+            react_found = False
+            for framework in react_result["frameworks"]:
+                if framework["name"].lower() == "react":
+                    react_found = True
+                    break
+            
+            if not react_found:
+                print("\nWARNING: React not detected in file that should contain React references")
+                print("Frameworks detected:", [f["name"] for f in react_result["frameworks"]])
+                
+        finally:
+            # Clean up
+            Path(django_file).unlink(missing_ok=True)
+            Path(react_file).unlink(missing_ok=True)

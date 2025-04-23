@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2025-04-23
+
+### Added
+- Framework Detection system for identifying libraries and frameworks in code:
+  - Support for primary languages (Python, Java, JavaScript, TypeScript)
+  - Rule-based detection with extensive signature patterns
+  - AI-assisted detection for ambiguous cases
+  - Version extraction from dependency files
+  - Repository-wide analysis capabilities
+  - Comprehensive statistics tracking
+- Enhanced AI provider interfaces:
+  - Added framework detection capabilities to provider interface
+  - Specialized prompts for framework detection
+  - Implementation in Mistral and OpenAI providers
+  - Mock provider implementation for testing
+- Comprehensive test suite:
+  - Unit tests for all framework detector components
+  - Real API tests with Mistral integration
+
+### Changed
+- Updated package exports to include new framework components
+- Improved code structure to more cleanly separate concerns
+
 ## [0.4.0] - 2025-04-23
 
 ### Added

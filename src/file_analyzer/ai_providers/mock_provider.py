@@ -6,6 +6,8 @@ import re
 from typing import Dict, Any, List, Optional
 
 from file_analyzer.ai_providers.provider_interface import AIModelProvider
+# Import will be loaded at runtime to avoid circular imports
+# from file_analyzer.core.framework_detector import FRAMEWORK_SIGNATURES
 
 
 class MockAIProvider(AIModelProvider):
@@ -668,3 +670,91 @@ class MockAIProvider(AIModelProvider):
                 return i
         
         return -1
+    
+    def detect_frameworks(self, file_path: str, content: str, language: str) -> Dict[str, Any]:
+        """
+        Detect frameworks in code with a mock implementation.
+        
+        Args:
+            file_path: Path to the file being analyzed
+            content: Content of the file to analyze
+            language: Programming language of the code
+            
+        Returns:
+            Dictionary with framework detection results
+        """
+        language = language.lower()
+        frameworks = []
+        
+        # Import at runtime to avoid circular imports
+        from file_analyzer.core.framework_detector import FRAMEWORK_SIGNATURES
+        
+        # Use language-specific framework detection if available
+        if language in FRAMEWORK_SIGNATURES:
+            frameworks = self._detect_frameworks_for_language(file_path, content, language)
+        
+        return {
+            "frameworks": frameworks,
+            "confidence": 0.8 if frameworks else 0.0
+        }
+    
+    def _detect_frameworks_for_language(self, file_path: str, content: str, language: str) -> List[Dict[str, Any]]:
+        """
+        Detect frameworks for a specific language.
+        
+        Args:
+            file_path: Path to the file being analyzed
+            content: Content of the file to analyze
+            language: Programming language of the code
+            
+        Returns:
+            List of detected frameworks
+        """
+        # Import at runtime to avoid circular imports
+        from file_analyzer.core.framework_detector import FRAMEWORK_SIGNATURES
+        
+        frameworks = []
+        
+        # Get signatures for the language
+        signatures = FRAMEWORK_SIGNATURES.get(language, {})
+        
+        for framework_name, signature in signatures.items():
+            # Check if any import signatures are present in content
+            imports_present = any(
+                import_sig.lower() in content.lower() 
+                for import_sig in signature.get("imports", [])
+            )
+            
+            # Check if any pattern signatures are present in content
+            patterns_present = any(
+                pattern.lower() in content.lower() 
+                for pattern in signature.get("patterns", [])
+            )
+            
+            # For testing purposes, detect frameworks with simplified logic
+            if imports_present or patterns_present:
+                # Generate mock evidence
+                evidence = []
+                features = []
+                
+                # Add import evidence
+                for import_sig in signature.get("imports", []):
+                    if import_sig.lower() in content.lower():
+                        evidence.append(f"Import: {import_sig}")
+                        features.append(import_sig)
+                
+                # Add pattern evidence
+                for pattern in signature.get("patterns", []):
+                    if pattern.lower() in content.lower():
+                        evidence.append(f"Pattern: {pattern}")
+                        features.append(pattern)
+                
+                # Add framework to results
+                frameworks.append({
+                    "name": framework_name,
+                    "confidence": 0.8,
+                    "evidence": evidence,
+                    "features": features
+                })
+        
+        return frameworks
