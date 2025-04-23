@@ -1,0 +1,66 @@
+# Documentation File: {{ file_path }}
+
+## Overview
+
+**Type:** {{ file_type }}  
+**Format:** {{ language }}  
+{% if frameworks %}**Related Tools:** {{ frameworks|map(attribute='name')|join(", ") }}{% endif %}
+
+## Document Content
+
+{% if variables %}
+### Key Concepts
+
+| Term | Description |
+|------|-------------|
+{% for variable in variables %}
+| {{ variable.name }} | {% if variable.documentation %}{{ variable.documentation }}{% else %}-{% endif %} |
+{% endfor %}
+{% endif %}
+
+{% if classes %}
+### Document Sections
+
+{% for class in classes %}
+#### {{ class.name }}
+
+{% if class.documentation %}{{ class.documentation }}{% endif %}
+{% endfor %}
+{% endif %}
+
+{% if relationships %}
+## Related Documents
+
+{% if relationships.imports %}
+### References
+{% for import_file in relationships.imports %}
+- [{{ import_file }}]({{ import_file }}.md)
+{% endfor %}
+{% endif %}
+
+{% if relationships.imported_by %}
+### Referenced By
+{% for imported_by_file in relationships.imported_by %}
+- [{{ imported_by_file }}]({{ imported_by_file }}.md)
+{% endfor %}
+{% endif %}
+
+{% if relationships.related %}
+### See Also
+{% for related_file in relationships.related %}
+- [{{ related_file }}]({{ related_file }}.md)
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% if code_snippet %}
+## Document Preview
+
+```{% if language %}{{ language|lower }}{% else %}markdown{% endif %}
+{{ code_snippet }}
+```
+{% endif %}
+
+---
+
+*Documentation generated automatically by File Analyzer*

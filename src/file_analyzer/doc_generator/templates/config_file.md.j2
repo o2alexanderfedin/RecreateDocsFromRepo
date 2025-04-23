@@ -1,0 +1,58 @@
+# Configuration File: {{ file_path }}
+
+## Overview
+
+**Type:** {{ file_type }}  
+**Language:** {{ language }}  
+{% if frameworks %}**Frameworks/Tools:** {{ frameworks|map(attribute='name')|join(", ") }}{% endif %}
+
+## Configuration Details
+
+This file contains configuration settings {% if language %}in {{ language }} format{% endif %}.
+
+{% if variables %}
+### Configuration Parameters
+
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+{% for variable in variables %}
+| `{{ variable.name }}` | {{ variable.value|default('-') }} | {% if variable.documentation %}{{ variable.documentation }}{% else %}-{% endif %} |
+{% endfor %}
+{% endif %}
+
+{% if relationships %}
+## Related Files
+
+{% if relationships.imports %}
+### References
+{% for import_file in relationships.imports %}
+- [{{ import_file }}]({{ import_file }}.md)
+{% endfor %}
+{% endif %}
+
+{% if relationships.imported_by %}
+### Referenced By
+{% for imported_by_file in relationships.imported_by %}
+- [{{ imported_by_file }}]({{ imported_by_file }}.md)
+{% endfor %}
+{% endif %}
+
+{% if relationships.related %}
+### Other Related Configuration
+{% for related_file in relationships.related %}
+- [{{ related_file }}]({{ related_file }}.md)
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% if code_snippet %}
+## Configuration Content
+
+```{% if language %}{{ language|lower }}{% else %}text{% endif %}
+{{ code_snippet }}
+```
+{% endif %}
+
+---
+
+*Documentation generated automatically by File Analyzer*
