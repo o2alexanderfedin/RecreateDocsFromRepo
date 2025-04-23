@@ -8,25 +8,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.5.0] - 2025-04-23
 
 ### Added
-- Framework Detection system for identifying libraries and frameworks in code:
-  - Support for primary languages (Python, Java, JavaScript, TypeScript)
-  - Rule-based detection with extensive signature patterns
-  - AI-assisted detection for ambiguous cases
-  - Version extraction from dependency files
-  - Repository-wide analysis capabilities
-  - Comprehensive statistics tracking
+- Framework Detection System for identifying frameworks and libraries in code:
+  - Support for Python, Java, JavaScript, and TypeScript frameworks
+  - Comprehensive signatures for popular frameworks like Django, Flask, React, Spring, etc.
+  - Version extraction from dependency files (requirements.txt, package.json, etc.)
+  - AI-assisted detection with rule-based fallback mechanisms
+  - Repository-wide framework analysis with usage statistics
+  - Documentation of framework usage patterns
 - Enhanced AI provider interfaces:
-  - Added framework detection capabilities to provider interface
-  - Specialized prompts for framework detection
-  - Implementation in Mistral and OpenAI providers
-  - Mock provider implementation for testing
+  - Extended with framework detection capabilities
+  - Specialized prompts for framework detection in different languages
+  - Robust error handling and response formatting
 - Comprehensive test suite:
-  - Unit tests for all framework detector components
-  - Real API tests with Mistral integration
+  - Unit tests with proper mocking for reproducibility
+  - Integration tests with real files
+  - Real API tests for Mistral AI integration
+  - Test coverage reports and documentation
 
 ### Changed
+- Improved AI provider interface with runtime imports to avoid circular dependencies
+- Enhanced error handling with better logging
+- Updated test infrastructure to support real API testing with environment variables
 - Updated package exports to include new framework components
 - Improved code structure to more cleanly separate concerns
+
+### Fixed
+- Fixed circular import issues between modules
+- Improved mock implementation for testing
 
 ## [0.4.0] - 2025-04-23
 
