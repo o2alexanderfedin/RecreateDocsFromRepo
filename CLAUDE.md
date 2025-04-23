@@ -29,6 +29,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
      - Check issue status: `gh issue view ISSUE-NUMBER`
      - Close issue manually: `gh issue close ISSUE-NUMBER --reason completed`
      - Add closure comment: `gh issue comment ISSUE-NUMBER --body "Implementation complete, merged to develop and release/[CURRENT_VERSION]"`
+     
+  7. Check and update parent issues:
+     - After closing a task issue, check if the parent user story should be closed
+     - After closing a user story, check if the parent epic should be closed
+     - Follow the hierarchical issue management rules in the Issue Management section
   
 - For releases:
   1. Start release: `git flow release start VERSION`
@@ -63,6 +68,36 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
     - Check issue status: `gh issue view ISSUE-NUMBER`
     - Close issue manually if not closed automatically: `gh issue close ISSUE-NUMBER --reason completed`
     - Add closure comment: `gh issue comment ISSUE-NUMBER --body "Implementation complete in commit SHA: $(git rev-parse HEAD)"`
+
+### Hierarchical Issue Management Rules
+- When a task/fix is completed:
+  1. Close the task/fix issue with appropriate comment
+  2. Check if this was the last open task for its parent user story
+  3. If no more active tasks exist, close the parent user story
+  4. Check if this was the last open user story for its parent epic
+  5. If no more active user stories exist, close the parent epic
+
+- Re-opening rules:
+  1. If a new task is added to a closed user story → Re-open the user story
+  2. If a closed user story is re-opened → Check if its parent epic needs to be re-opened
+  3. If a new user story is added to a closed epic → Re-open the epic
+
+- Follow these steps to check and update parent issues:
+  ```bash
+  # Check if all tasks for a user story are closed
+  gh issue list --search "user-story:USER-STORY-NUMBER state:open"
+  
+  # If no results, close the user story
+  gh issue close USER-STORY-NUMBER --reason completed
+  gh issue comment USER-STORY-NUMBER --body "All tasks completed - closing user story"
+  
+  # Check if all user stories for an epic are closed
+  gh issue list --search "epic:EPIC-NUMBER state:open"
+  
+  # If no results, close the epic
+  gh issue close EPIC-NUMBER --reason completed
+  gh issue comment EPIC-NUMBER --body "All user stories completed - closing epic"
+  ```
 
 ## Branch Strategy (Git Flow)
 - `main`: Production-ready code, only updated through:
