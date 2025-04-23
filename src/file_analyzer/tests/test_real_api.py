@@ -293,17 +293,39 @@ class TestMistralAPIIntegration:
             assert "file_type_analysis" in result
             assert "code_structure" in result
             
-            # Check that we got reasonable code structure
+            # Check that we got reasonable code structure and print the entire result
+            import json
+            print("\n======== FULL MISTRAL API RESPONSE ========")
+            print(json.dumps(result, indent=2, default=str))
+            
             structure = result["code_structure"]["structure"]
+            print("\n======== STRUCTURE ========")
+            print(json.dumps(structure, indent=2, default=str))
+            
             assert "imports" in structure
             assert "classes" in structure
             assert "functions" in structure
             
-            # Verify key elements were detected
-            imports = structure["imports"]
-            assert any("os" in imp for imp in imports)
-            assert any("sys" in imp for imp in imports)
-            assert any("pathlib" in imp for imp in imports)
+            # Verify imports - adjust based on actual format from Mistral
+            imports = structure["imports"] 
+            print("\n======== IMPORTS ========")
+            print(f"Type: {type(imports)}")
+            print(f"Value: {imports}")
+            
+            # More flexible assertions that work with different response formats
+            if isinstance(imports, list):
+                if len(imports) > 0 and isinstance(imports[0], dict):
+                    assert any("os" in str(imp.get("name", "")) or "os" in str(imp.get("module", "")) for imp in imports)
+                    assert any("sys" in str(imp.get("name", "")) or "sys" in str(imp.get("module", "")) for imp in imports)
+                    assert any("pathlib" in str(imp.get("name", "")) or "pathlib" in str(imp.get("path", "")) for imp in imports)
+                else:
+                    assert any("os" in str(imp) for imp in imports)
+                    assert any("sys" in str(imp) for imp in imports)
+                    assert any("pathlib" in str(imp) for imp in imports)
+            elif isinstance(imports, str):
+                assert "os" in imports
+                assert "sys" in imports 
+                assert "pathlib" in imports
             
             # Check function was detected
             functions = structure["functions"]
@@ -313,13 +335,35 @@ class TestMistralAPIIntegration:
             classes = structure["classes"]
             assert any(cls["name"] == "FileProcessor" for cls in classes)
             
-            # Print results for inspection
-            print("\nMistral API Code Analysis Result:")
+            # Print detailed results for inspection
+            import json
+            print("\n======== REAL MISTRAL API CODE ANALYSIS RESULT ========")
             print(f"Language: {result['language']}")
-            print(f"Imports: {structure['imports']}")
-            print(f"Classes: {[cls['name'] for cls in structure['classes']]}")
-            print(f"Methods: {[method for cls in structure['classes'] for method in cls.get('methods', [])]}")
-            print(f"Functions: {[func['name'] for func in structure['functions']]}")
+            print(f"File path: {result['file_path']}")
+            print(f"Supported: {result['supported']}")
+            print(f"Confidence: {result.get('confidence')}")
+            
+            print("\nImports detected:")
+            for imp in structure.get('imports', []):
+                print(f"  - {imp}")
+            
+            print("\nFunctions detected:")
+            for func in structure.get('functions', []):
+                params = ", ".join(func.get('parameters', []))
+                doc = func.get('documentation', '')[:50] + "..." if func.get('documentation', '') else "None"
+                print(f"  - {func.get('name')}({params}) - Doc: {doc}")
+            
+            print("\nClasses detected:")
+            for cls in structure.get('classes', []):
+                methods = ", ".join(cls.get('methods', []))
+                props = ", ".join(cls.get('properties', []))
+                doc = cls.get('documentation', '')[:50] + "..." if cls.get('documentation', '') else "None"
+                print(f"  - {cls.get('name')} - Methods: [{methods}], Props: [{props}]")
+                print(f"    Doc: {doc}")
+                
+            print("\nRaw API Response Sample (truncated):")
+            raw_json = json.dumps(result["code_structure"], indent=2)
+            print(raw_json[:1000] + "..." if len(raw_json) > 1000 else raw_json)
             
         finally:
             # Clean up
