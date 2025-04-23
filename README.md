@@ -1,72 +1,122 @@
-# Documentation Recreation Agent Swarm
+# File Type Analyzer (v0.1.0)
 
-A powerful system of AI agents designed to automatically analyze and recreate comprehensive product and design documentation from existing code repositories. This tool helps organizations understand and document software acquired from third-party sources, open-source projects, or through company acquisitions.
-
-## Problem Statement
-
-Many organizations face challenges when acquiring undocumented software:
-- Lack of clear understanding of system architecture
-- Missing or outdated documentation
-- Difficulty in onboarding new team members
-- Increased maintenance costs
-- Compliance and audit challenges
-
-## Solution
-
-This agent swarm system:
-1. Analyzes code repositories to understand system architecture
-2. Identifies key components and their relationships
-3. Generates comprehensive documentation including:
-   - System architecture diagrams
-   - API documentation
-   - Component interactions
-   - Data flow diagrams
-   - Deployment procedures
-   - Security considerations
+A tool for automatically analyzing files to determine their type, language, purpose, and key characteristics using AI models.
 
 ## Features
 
-- Multi-agent architecture for specialized documentation tasks
-- Support for multiple programming languages and frameworks
-- Automatic diagram generation
-- Integration with popular documentation formats
-- Customizable documentation templates
-- Version control system integration
+- 🔍 **File Analysis**: Automatically detect file types, languages, and purposes.
+- 🤖 **AI-Powered**: Leverages AI models (Mistral, OpenAI) for accurate analysis.
+- 🔄 **Flexible Providers**: Supports multiple AI providers with a common interface.
+- 💾 **Caching**: Efficiently reuses analysis results to minimize API costs.
+- 📂 **Directory Support**: Analyze entire directories with filtering options.
+- 📊 **Structured Output**: Results in clean, structured JSON format.
 
-## Getting Started
-
-### Prerequisites
-
-- Python 3.8+
-- Git
-- Docker (optional)
-
-### Installation
+## Installation
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/documentation-recreation-agent-swarm.git
-cd documentation-recreation-agent-swarm
+git clone https://github.com/yourusername/RecreateDocsFromRepo.git
+cd RecreateDocsFromRepo
 
-# Install dependencies
-pip install -r requirements.txt
+# Install the package
+pip install -e .
+
+# For OpenAI support
+pip install -e ".[openai]"
+
+# For development
+pip install -e ".[dev]"
 ```
 
-### Usage
+## Usage
+
+### Command Line
 
 ```bash
-python main.py --repo-path /path/to/repository --output-dir /path/to/output
+# Analyze a single file using Mistral AI
+file-analyzer path/to/file.py --provider mistral
+
+# Analyze a directory
+file-analyzer path/to/directory --provider mistral
+
+# Use a different provider
+file-analyzer path/to/file.py --provider openai
+
+# Save results to a file
+file-analyzer path/to/directory --output results.json
+
+# Exclude certain patterns
+file-analyzer path/to/directory --exclude "**/*.log" --exclude "**/node_modules/**"
+
+# Use the mock provider for testing (no API key needed)
+file-analyzer path/to/file.py --provider mock
+```
+
+### Environment Variables
+
+Set your API keys as environment variables:
+
+```bash
+# For Mistral AI
+export MISTRAL_API_KEY=your_mistral_api_key
+
+# For OpenAI
+export OPENAI_API_KEY=your_openai_api_key
+```
+
+### Python API
+
+```python
+from file_analyzer.core.file_type_analyzer import FileTypeAnalyzer
+from file_analyzer.ai_providers.mistral_provider import MistralProvider
+from file_analyzer.core.cache_provider import InMemoryCache
+
+# Create an analyzer with Mistral AI
+analyzer = FileTypeAnalyzer(
+    ai_provider=MistralProvider(api_key="your_api_key"),
+    cache_provider=InMemoryCache()
+)
+
+# Analyze a file
+result = analyzer.analyze_file("path/to/file.py")
+print(result)
+```
+
+## Design
+
+This project follows SOLID principles:
+
+- **Single Responsibility**: Each class has one well-defined responsibility
+- **Open/Closed**: Extensible through new AI providers without modifying existing code
+- **Liskov Substitution**: Different implementations can be seamlessly substituted
+- **Interface Segregation**: Clean, focused interfaces
+- **Dependency Inversion**: High-level modules depend on abstractions
+
+The architecture includes:
+
+- **Core Components**: File reading, hashing, caching, and analysis
+- **AI Providers**: Implementations for different AI models
+- **CLI Interface**: User-friendly command line tool
+
+## Testing
+
+Tests are written using pytest:
+
+```bash
+# Run all tests
+pytest
+
+# Run with coverage
+pytest --cov=file_analyzer
+
+# Run specific test file
+pytest src/file_analyzer/tests/test_file_reader.py
 ```
 
 ## License
 
-This project is licensed under the AGPL-3.0 License - see the [LICENSE](LICENSE) file for details.
+MIT
 
 ## Contributing
 
-Contributions are welcome! Please read our [Contributing Guidelines](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
-
-## Acknowledgments
-
-- Thanks to all contributors who have helped shape this project
-- Inspired by the need for better software documentation practices 
+Contributions are welcome! Please feel free to submit a Pull Request.
