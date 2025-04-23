@@ -59,8 +59,8 @@ git push origin --tags
 ./git-flow-update-current
 
 # Delete the release branch after finalizing
-git branch -d release/x.y.z
-git push origin --delete release/x.y.z
+git branch -d release/*.*.*
+git push origin --delete release/*.*.*
 ```
 
 ### Hotfix Process
@@ -85,8 +85,8 @@ git push origin --tags
 ./git-flow-update-current
 
 # Delete the release branch after finalizing
-git branch -d release/x.y.z
-git push origin --delete release/x.y.z
+git branch -d release/*.*.*
+git push origin --delete release/*.*.*
 ```
 
 ## Using release/current
