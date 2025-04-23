@@ -5,6 +5,35 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.4.0] - 2025-04-23
+
+### Added
+- AI Code Analyzer component for detailed code structure extraction:
+  - Support for primary languages (Python, Java, JavaScript, TypeScript)
+  - Extraction of classes, methods, functions, variables, and imports
+  - Language-specific construct detection (interfaces, types, decorators)
+  - Documentation extraction from comments and docstrings
+  - File chunking for handling large code files
+  - Comprehensive mock implementation for testing
+- Enhanced AI provider interfaces:
+  - Extended Mistral provider with code analysis capabilities
+  - Extended OpenAI provider with code analysis capabilities
+  - Specialized prompts for different programming languages
+  - Strong error handling and response formatting
+- Comprehensive test suite:
+  - Unit tests for all code analyzer components
+  - Integration tests with existing systems
+  - Real API tests for Mistral AI integration
+
+### Changed
+- Improved language detection with case-insensitive matching
+- Enhanced file type detection to handle varying type descriptions
+- Updated provider interface to support code structure analysis
+
+### Fixed
+- Fixed issue with case sensitivity in language detection
+- Improved error handling for unsupported file types
+
 ## [0.3.0] - 2025-04-23
 
 ### Added
