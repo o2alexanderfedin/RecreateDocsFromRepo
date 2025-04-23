@@ -21,10 +21,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
        b. `git merge --no-ff feature/branch-name -m "Merge feature/branch-name: Description"`
        c. `git push origin develop`
        d. `git branch -d feature/branch-name && git push origin --delete feature/branch-name`
-  5. Always verify issue is closed and close it manually if needed:
+  5. Merge feature to current release branch (if one exists):
+     - `git checkout release/[CURRENT_VERSION]`
+     - `git merge --no-ff develop -m "Merge develop into release/[CURRENT_VERSION]: Add feature description"`
+     - `git push origin release/[CURRENT_VERSION]`
+  6. Always verify issue is closed and close it manually if needed:
      - Check issue status: `gh issue view ISSUE-NUMBER`
      - Close issue manually: `gh issue close ISSUE-NUMBER --reason completed`
-     - Add closure comment: `gh issue comment ISSUE-NUMBER --body "Implementation complete and merged to develop"`
+     - Add closure comment: `gh issue comment ISSUE-NUMBER --body "Implementation complete, merged to develop and release/[CURRENT_VERSION]"`
   
 - For releases:
   1. Start release: `git flow release start VERSION`
