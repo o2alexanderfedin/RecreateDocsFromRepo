@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Update release/current to point to the latest release tag
+# Update release/current to point to the latest release tag and close issues
 #
 # This script should be run after finishing a release with git flow
 # It assumes that the most recent tag is the latest release
@@ -11,13 +11,50 @@ LATEST_TAG=$(git tag --sort=-v:refname | head -n 1)
 
 echo "Updating release/current to point to $LATEST_TAG..."
 
+# Get the original branch
+ORIGINAL_BRANCH=$(git branch --show-current)
+
 # Update the release/current branch
-git checkout release/current || git checkout -b release/current "$LATEST_TAG"
+git checkout release/current 2>/dev/null || git checkout -b release/current "$LATEST_TAG"
 git reset --hard "$LATEST_TAG"
 git push --force origin release/current
 
-# Return to the branch where you were before
-git checkout -
+# Check for issues to close
+echo "Checking for issues to close in this release..."
+RELEASE_NAME=${LATEST_TAG#v}  # Remove 'v' prefix if present
+
+# Look for issues mentioned in commit messages since the previous release
+PREVIOUS_TAG=$(git tag --sort=-v:refname | head -n 2 | tail -n 1)
+if [ -n "$PREVIOUS_TAG" ]; then
+    echo "Finding issues fixed between $PREVIOUS_TAG and $LATEST_TAG"
+    ISSUES=$(git log --format="%B" $PREVIOUS_TAG..$LATEST_TAG | grep -o -E '(close|closes|closed|fix|fixes|fixed|resolve|resolves|resolved)\s+#[0-9]+' | grep -o -E '#[0-9]+' | sort -u | tr '\n' ' ')
+    
+    if [ -n "$ISSUES" ]; then
+        echo "Issues to close: $ISSUES"
+        echo ""
+        echo "To close these issues on GitHub, you can run:"
+        echo "gh issue close $ISSUES -c \"Closed by release $LATEST_TAG\""
+        echo ""
+        
+        # If gh CLI is installed, offer to close issues automatically
+        if command -v gh &> /dev/null; then
+            read -p "Would you like to close these issues now? (y/n) " -n 1 -r
+            echo
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                for ISSUE in $ISSUES; do
+                    ISSUE_NUM=${ISSUE#\#}  # Remove # prefix
+                    gh issue close "$ISSUE_NUM" -c "Closed by release $LATEST_TAG"
+                    echo "Closed issue $ISSUE"
+                done
+            fi
+        fi
+    else
+        echo "No issues found to close."
+    fi
+fi
+
+# Return to the original branch
+git checkout "$ORIGINAL_BRANCH" 2>/dev/null || git checkout main
 
 echo "release/current now points to $LATEST_TAG"
 echo "Remember to run this script after completing a release with git flow"

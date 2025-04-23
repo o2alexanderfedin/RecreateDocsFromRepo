@@ -16,16 +16,26 @@ This repository follows the Git Flow workflow with an additional `release/curren
 ### Feature Development
 
 ```bash
-# Start a new feature
-git flow feature start feature-name
+# Start a new feature (link to GitHub issue)
+git flow feature start ISSUE-123-feature-description
 
 # Work on the feature...
 git add .
 git commit -m "Implement feature"
 
+# Or with issue closing keyword
+git commit -m "Add login functionality. Fixes #123"
+
 # Finish the feature (merges to develop)
-git flow feature finish feature-name
+git flow feature finish ISSUE-123-feature-description
 ```
+
+When a feature is merged into develop, GitHub Actions will:
+1. Run all tests to ensure the feature works correctly
+2. Automatically close associated GitHub issues if:
+   - The feature branch name follows the pattern `feature/ISSUE-123-description`
+   - Commit messages include closing keywords like "Fixes #123", "Closes #123", etc.
+3. Add a comment to the issue noting that it was closed automatically
 
 ### Release Process
 
