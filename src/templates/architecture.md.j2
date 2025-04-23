@@ -1,0 +1,50 @@
+# {{ title }}
+
+## System Architecture
+
+{{ description }}
+
+{% if components %}
+## Components
+
+{% for component in components %}
+### {{ component.name }}
+
+{{ component.description }}
+
+**Responsibilities:**
+{% for responsibility in component.responsibilities %}
+- {{ responsibility }}
+{% endfor %}
+
+{% if component.interfaces %}
+**Interfaces:**
+{% for interface in component.interfaces %}
+- {{ interface }}
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+{% endif %}
+
+{% if relationships %}
+## Component Relationships
+
+{% for relationship in relationships %}
+- {{ relationship.source }} → {{ relationship.target }}: {{ relationship.description }}
+{% endfor %}
+{% endif %}
+
+{% if diagrams %}
+## Diagrams
+
+{% for diagram in diagrams %}
+### {{ diagram.title }}
+
+{{ diagram.description }}
+
+```
+{{ diagram.content }}
+```
+{% endfor %}
+{% endif %}
