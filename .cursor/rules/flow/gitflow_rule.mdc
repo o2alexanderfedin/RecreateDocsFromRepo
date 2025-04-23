@@ -1,0 +1,90 @@
+---
+description: USE WHEN initializing repo or applying GitFlow (feature/release/hotfix) workflow with Git + GitHub
+globs:
+alwaysApply: false
+---
+# GitFlow Setup and Enforcement Rule
+
+This rule guides the user through setting up a project repository using the GitFlow branching model with support for GitHub integration via the GitHub CLI if available.
+
+## 1. Ensure Git is Installed and Initialized
+- If `.git` folder is missing:
+  - Prompt: “Git is not initialized in this folder. Do you want to run `git init`?”
+  - If yes:
+    - Run: `git init`
+    - Ask for main language to suggest `.gitignore`
+    - Optionally generate `.gitignore` (e.g., from https://www.toptal.com/developers/gitignore)
+
+## 2. Check for GitHub CLI
+- Run: `gh --version`
+- If not installed:
+  - Prompt: “GitHub CLI not found. Install it automatically?”
+  - If yes:
+    - Suggest OS-specific install command:
+      - macOS: `brew install gh`
+      - Ubuntu: `sudo apt install gh`
+      - Windows: Link to https://cli.github.com
+
+## 3. Check for Remote
+- Run: `git remote -v`
+- If no remotes configured:
+  - Ask: “Do you want to create a new GitHub repo?”
+    - If yes:
+      - Prompt for:
+        - Repository name
+        - Visibility (public/private)
+        - Organization (optional)
+      - Run:
+        gh repo create <name> --source=. --public --push
+    - If no:
+      - Ask for remote URL
+      - Run: `git remote add origin <url>`
+
+## 4. Initialize GitFlow Branching Model
+- Check for `develop` branch; if missing:
+  - Run:
+    git checkout -b develop
+    git push -u origin develop
+- For new features:
+  - Prompt: “Name your feature (e.g., 'auth-module')”
+  - Run:
+    git checkout -b feature/<name>
+    git push -u origin feature/<name>
+
+## 5. GitFlow Branch Types
+- **Main**: stable production releases
+- **Develop**: integration of features
+- **Feature**: created from `develop`, merged back when done
+- **Release**: created from `develop`, merged into `main` and `develop`
+- **Hotfix**: created from `main`, merged into `main` and `develop`
+
+## 6. Commit and Push Guidance
+- Recommend:
+  git add .
+  git commit -m "<message>"
+  git push
+- For multi-line commit messages, suggest:
+  git commit -F <(echo "feat: initial setup
+
+- Initialized repo
+- Added .gitignore
+- Created develop branch")
+- For GitHub PRs:
+  gh pr create --title "Initial GitFlow setup" --body <(echo "This PR includes:
+
+- Initial commit
+- Feature branch setup
+- Remote push
+- GitFlow compliance check")
+
+## 7. Optional Enhancements
+- Ask to:
+  - Add README.md
+  - Add LICENSE
+  - Enable branch protection via:
+    gh api -X PUT /repos/:owner/:repo/branches/main/protection ...
+  - Set up GitHub Actions template for CI/CD
+
+## Notes
+- This rule assumes GitHub is the remote provider, but local git usage is fully supported regardless.
+- Future enhancements may include GitLab / Bitbucket compatibility and offline mode.

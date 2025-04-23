@@ -1,6 +1,105 @@
 ---
-description: 
+name: Pattern Recognition Rules
+description: Analyzes user's command to understand if it contains a reusable advice or pattern or solution that is applicable to a class of problems
 globs: 
+alwaysApply: true
+---
+
+## Pattern Detection
+- Monitors all file changes and command executions
+- Identifies repeated patterns in:
+  - CLI command usage
+  - File operations
+  - Code structure
+  - Documentation format
+  - Git flow
+  - etc.
+
+## Rule Creation Process
+1. Pattern identification
+2. Rule proposal (requires user approval)
+3. Rule implementation
+4. Rule testing
+5. Rule documentation
+
+## Current Patterns
+- CLI stream redirection: Using `<(echo ...)` for multi-line input
+  - Applies to: GitHub CLI, Git commit messages
+  - Example: `gh issue edit 1 --body-file <(echo '...')`
+
+## Rule Organization
+- Rules are stored in `.cursor/rules/` with subdirectories for:
+  - cli/
+  - file_operations/
+
+
+# Cursor IDE Rules file short guide
+
+Cursor IDE utilizes .mdc (Markdown Cursor) files to define rules that guide its AI assistant’s behavior. Each .mdc file begins with a frontmatter section enclosed between triple dashes (---), specifying metadata that determines when and how the rule is applied.
+
+⸻
+
+Frontmatter Fields
+
+The frontmatter in a .mdc file includes the following fields:
+	-	description: A brief statement (ideally under 120 characters) that clearly defines the rule’s purpose or trigger condition.
+	-	globs: Comma-separated file path patterns (without brackets or quotes) that specify which files the rule applies to.
+	-	alwaysApply: A boolean (true or false) indicating whether the rule should be universally applied.
+
+It’s important to note that, despite resembling YAML, this frontmatter is not strictly YAML-formatted. Treating it as such may lead to unintended behavior.  ￼
+
+⸻
+
+Examples of Frontmatter Configurations
+
+### 1. Always Applied Rule
+
+This rule is injected into the context unconditionally, regardless of the file being edited.
+```frontmatter
+---
+description:
+globs:
+alwaysApply: true
+---
+```
+
+### 2. File-Specific Rule
+
+This rule is automatically added to the context if the user attaches or mentions a file in the chat that matches the specified glob pattern.
+```frontmatter
+---
+description:
+globs: src/**/*.ts,src/**/*.tsx
 alwaysApply: false
 ---
- 
+```
+
+### 3. Contextual Rule
+
+This rule is considered by the AI agent based solely on its description. If deemed relevant, the agent fetches and applies it.
+```
+---
+description: USE WHEN modifying authentication logic
+globs:
+alwaysApply: false
+---
+```
+
+### 4. Manual Rule
+
+This rule is only applied when explicitly referenced in a prompt or another rule.
+```
+---
+description:
+globs:
+alwaysApply: false
+---
+```
+
+## Best Practices
+	-	Clarity: Ensure the description is precise and action-oriented to aid the AI in determining applicability.
+	-	Specificity: Use globs to narrowly define the rule’s scope, preventing unintended applications.
+	-	Simplicity: Avoid unnecessary fields; include only what’s essential for the rule’s function. ￼
+	-	Consistency: Maintain a uniform structure across all .mdc files for ease of maintenance and readability.
+
+By thoughtfully configuring the frontmatter in your .mdc files, you empower the Cursor AI agent to operate with greater precision and context-awareness, enhancing your development workflow.
