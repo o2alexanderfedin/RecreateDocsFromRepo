@@ -1,0 +1,128 @@
+# Python Module: {{ file_path }}
+
+## Overview
+
+**Type:** {{ file_type }}  
+**Language:** Python  
+{% if frameworks %}**Frameworks:** {{ frameworks|map(attribute='name')|join(", ") }}{% endif %}
+
+## Module Structure
+
+{% if imports %}
+### Imports
+
+```python
+{% for import in imports %}
+{{ import }}
+{% endfor %}
+```
+{% endif %}
+
+{% if classes %}
+### Classes
+
+{% for class in classes %}
+#### `class {{ class.name }}`
+
+{% if class.documentation %}{{ class.documentation }}{% endif %}
+
+{% if class.methods %}
+**Methods:**
+
+| Method | Parameters | Description |
+|--------|------------|-------------|
+{% for method in class.methods %}
+| `{{ method }}` | - | {% if method.documentation %}{{ method.documentation|truncate(50) }}{% endif %} |
+{% endfor %}
+{% endif %}
+
+{% if class.properties %}
+**Properties:**
+
+| Property | Description |
+|----------|-------------|
+{% for prop in class.properties %}
+| `{{ prop }}` | - |
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+{% endif %}
+
+{% if functions %}
+### Functions
+
+{% for function in functions %}
+#### `{{ function.name }}({{ function.parameters|join(", ") }})`
+
+{% if function.documentation %}{{ function.documentation }}{% endif %}
+
+**Parameters:**
+{% for param in function.parameters %}
+- `{{ param }}`
+{% endfor %}
+
+{% endfor %}
+{% endif %}
+
+{% if variables %}
+### Module-Level Variables
+
+| Variable | Scope | Description |
+|----------|-------|-------------|
+{% for variable in variables %}
+| `{{ variable.name }}` | {{ variable.scope }} | - |
+{% endfor %}
+{% endif %}
+
+{% if framework_details %}
+## Framework Usage
+
+{% for framework in framework_details %}
+### {{ framework.name }}{% if framework.version %} (v{{ framework.version }}){% endif %}
+
+**Confidence:** {{ framework.confidence|default(0)|round(2) }}
+
+{% if framework.usage %}
+**Features Used:**
+{% for usage in framework.usage %}
+{% if usage.file_path == file_path and usage.features %}
+{% for feature in usage.features %}
+- {{ feature }}
+{% endfor %}
+{% endif %}
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+{% endif %}
+
+{% if relationships %}
+## Module Dependencies
+
+{% if relationships.imports %}
+### Imports Modules
+{% for import_file in relationships.imports %}
+- [{{ import_file }}]({{ import_file }}.md)
+{% endfor %}
+{% endif %}
+
+{% if relationships.imported_by %}
+### Imported By
+{% for imported_by_file in relationships.imported_by %}
+- [{{ imported_by_file }}]({{ imported_by_file }}.md)
+{% endfor %}
+{% endif %}
+{% endif %}
+
+{% if code_snippet %}
+## Code Preview
+
+```python
+{{ code_snippet }}
+```
+{% endif %}
+
+---
+
+*Documentation generated automatically by File Analyzer*

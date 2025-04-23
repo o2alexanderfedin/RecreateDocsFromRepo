@@ -1,0 +1,79 @@
+{% if is_root_index %}
+# Repository Documentation
+
+## Overview
+
+This documentation was automatically generated for the repository at `{{ repo_path }}`.
+
+**Total Files:** {{ total_files }}  
+**Generated:** {{ now|default('') }}
+
+## Repository Structure
+
+{% for directory, files in directories.items() %}
+{% if directory %}
+### [{{ directory }}/]({{ directory }}/index.md)
+{% else %}
+### Root
+{% endif %}
+
+{% for file in files %}
+- [{{ file }}]({{ file }}.md)
+{% endfor %}
+
+{% endfor %}
+
+{% if frameworks %}
+## Frameworks & Libraries
+
+| Framework | Language | Version | Files |
+|-----------|----------|---------|-------|
+{% for framework in frameworks %}
+| **{{ framework.name }}** | {{ framework.language }} | {{ framework.version|default('Unknown') }} | {{ framework.count|default(0) }} |
+{% endfor %}
+{% endif %}
+
+## Navigation
+
+- [Repository Structure](#repository-structure)
+- [Frameworks & Libraries](#frameworks--libraries)
+{% if frameworks %}
+{% for framework in frameworks %}
+  - [{{ framework.name }}](#{{ framework.name|lower|replace(' ', '-') }})
+{% endfor %}
+{% endif %}
+
+{% else %}
+# Directory: {{ directory }}
+
+{% if parent_directory %}
+[↑ Parent Directory]({% if parent_directory %}../index.md{% else %}/index.md{% endif %})
+{% else %}
+[↑ Repository Root](/index.md)
+{% endif %}
+
+## Contents
+
+{% if files %}
+### Files
+
+| File | Type | Language |
+|------|------|----------|
+{% for file in files %}
+| [{{ file.name }}]({{ file.name }}.md) | {{ file.file_type }} | {{ file.language }} |
+{% endfor %}
+{% endif %}
+
+{% if subdirectories %}
+### Subdirectories
+
+{% for subdir in subdirectories %}
+- [{{ subdir.split('/')|last }}/]({{ subdir.split('/')|last }}/index.md)
+{% endfor %}
+{% endif %}
+
+{% endif %}
+
+---
+
+*Documentation generated automatically by File Analyzer on {{ now|default('') }}*
