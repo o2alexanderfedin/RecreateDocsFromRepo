@@ -33,6 +33,18 @@ This documentation was automatically generated for the repository at `{{ repo_pa
 {% endfor %}
 {% endif %}
 
+{% if key_files %}
+## Key Files
+
+These files have the most relationships and are central to the codebase:
+
+| File | Relationships | Description |
+|------|---------------|-------------|
+{% for key_file in key_files %}
+| [{{ key_file.name }}]({{ key_file.path }}.md) | {{ key_file.relationship_count }} | {{ key_file.description|default('-') }} |
+{% endfor %}
+{% endif %}
+
 ## Navigation
 
 - [Repository Structure](#repository-structure)
@@ -40,6 +52,12 @@ This documentation was automatically generated for the repository at `{{ repo_pa
 {% if frameworks %}
 {% for framework in frameworks %}
   - [{{ framework.name }}](#{{ framework.name|lower|replace(' ', '-') }})
+{% endfor %}
+{% endif %}
+{% if key_files %}
+- [Key Files](#key-files)
+{% for key_file in key_files %}
+  - [{{ key_file.name }}]({{ key_file.path }}.md)
 {% endfor %}
 {% endif %}
 
@@ -57,10 +75,10 @@ This documentation was automatically generated for the repository at `{{ repo_pa
 {% if files %}
 ### Files
 
-| File | Type | Language |
-|------|------|----------|
+| File | Type | Language | Related Files |
+|------|------|----------|--------------|
 {% for file in files %}
-| [{{ file.name }}]({{ file.name }}.md) | {{ file.file_type }} | {{ file.language }} |
+| [{{ file.name }}]({{ file.name }}.md) | {{ file.file_type }} | {{ file.language }} | {% if file.relationship_count %}{{ file.relationship_count }}{% else %}0{% endif %} |
 {% endfor %}
 {% endif %}
 

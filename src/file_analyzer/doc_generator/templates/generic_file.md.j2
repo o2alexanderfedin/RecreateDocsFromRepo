@@ -78,10 +78,10 @@
 {% endif %}
 
 {% if relationships %}
-## Relationships
+## File Relationships
 
 {% if relationships.imports %}
-### Imports Files
+### Imports
 {% for import_file in relationships.imports %}
 - [{{ import_file }}]({{ import_file }}.md)
 {% endfor %}
@@ -94,11 +94,43 @@
 {% endfor %}
 {% endif %}
 
+{% if relationships.inherits_from %}
+### Inherits From
+{% for inherit_file in relationships.inherits_from %}
+- [{{ inherit_file }}]({{ inherit_file }}.md)
+{% endfor %}
+{% endif %}
+
+{% if relationships.inherited_by %}
+### Inherited By
+{% for inherited_file in relationships.inherited_by %}
+- [{{ inherited_file }}]({{ inherited_file }}.md)
+{% endfor %}
+{% endif %}
+
+{% if relationships.references %}
+### References
+{% for ref_file in relationships.references %}
+- [{{ ref_file }}]({{ ref_file }}.md)
+{% endfor %}
+{% endif %}
+
+{% if relationships.referenced_by %}
+### Referenced By
+{% for ref_by_file in relationships.referenced_by %}
+- [{{ ref_by_file }}]({{ ref_by_file }}.md)
+{% endfor %}
+{% endif %}
+
 {% if relationships.related %}
 ### Related Files
 {% for related_file in relationships.related %}
 - [{{ related_file }}]({{ related_file }}.md)
 {% endfor %}
+{% endif %}
+
+{% if graph_data %}
+{% include 'dependency_graph.md.j2' %}
 {% endif %}
 {% endif %}
 
