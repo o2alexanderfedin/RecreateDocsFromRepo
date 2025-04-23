@@ -5,6 +5,36 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2025-04-23
+
+### Added
+- Enhanced caching system with multiple backends:
+  - In-memory cache with LRU eviction and TTL
+  - SQLite-based persistent cache
+  - File system cache for larger datasets
+  - Tiered caching system combining multiple backends
+- Cache management features:
+  - Cache statistics tracking and reporting
+  - Automatic cache expiration and eviction
+  - Cache pre-warming capabilities
+  - Cache configuration system
+- New cache-manager CLI utility:
+  - View cache statistics
+  - Clear cache data
+  - Pre-warm cache with known file types
+  - Export cache data
+- Enhanced command-line options for caching in file-analyzer and repo-scanner tools
+- Comprehensive test suite for all cache implementations
+
+### Changed
+- Updated FileTypeAnalyzer to use the enhanced caching system
+- Improved CLI interface with better organization of options
+- Enhanced progress reporting with cache statistics
+
+### Fixed
+- Fixed potential race conditions in cache access
+- Improved error handling in cache operations
+
 ## [0.2.0] - 2025-04-23
 
 ### Added
