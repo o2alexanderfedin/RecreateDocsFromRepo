@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 
 from file_analyzer.core.file_type_analyzer import FileTypeAnalyzer
+from file_analyzer.core.code_analyzer import CodeAnalyzer
 from file_analyzer.core.cache_provider import InMemoryCache
 from file_analyzer.ai_providers.mock_provider import MockAIProvider
 
@@ -338,6 +339,220 @@ class TestFileAnalyzerIntegration:
                 assert result["language"] == "text"
                 assert result["file_type"] == "configuration"
                 assert "dependencies" in result["characteristics"]
+    
+    def test_code_analyzer_integration(self):
+        """Test the CodeAnalyzer integration with FileTypeAnalyzer and AI provider."""
+        # Arrange
+        mock_provider = MockAIProvider()
+        cache = InMemoryCache()
+        
+        # Create code analyzer
+        code_analyzer = CodeAnalyzer(
+            ai_provider=mock_provider,
+            cache_provider=cache
+        )
+        
+        # Create a temporary directory with code files for different languages
+        with tempfile.TemporaryDirectory() as tempdir:
+            tempdir_path = Path(tempdir)
+            
+            # Create test files for different languages
+            test_files = {
+                "app.py": """
+import os
+import sys
+
+class TestClass:
+    \"\"\"Test class docstring.\"\"\"
+    
+    def __init__(self):
+        self.prop1 = "test"
+    
+    def method1(self):
+        \"\"\"Method 1 docstring.\"\"\"
+        return True
+    
+    def method2(self, param):
+        return param
+
+def test_func(param1, param2):
+    \"\"\"Test function docstring.\"\"\"
+    return param1 + param2
+                """,
+                "Main.java": """
+package com.example.test;
+
+import java.util.List;
+import java.util.ArrayList;
+
+/**
+ * Test class javadoc.
+ */
+public class Main {
+    private String prop1;
+    
+    public Main() {
+        this.prop1 = "test";
+    }
+    
+    /**
+     * Method 1 javadoc.
+     */
+    public boolean method1() {
+        return true;
+    }
+    
+    public String method2(String param) {
+        return param;
+    }
+}
+                """,
+                "app.js": """
+import { something } from 'somewhere';
+const fs = require('fs');
+
+const TEST_VAR = 'test';
+
+/**
+ * Test class.
+ */
+class TestClass {
+    constructor() {
+        this.prop1 = 'test';
+    }
+    
+    /**
+     * Method 1.
+     */
+    method1() {
+        return true;
+    }
+    
+    method2(param) {
+        return param;
+    }
+}
+
+/**
+ * Test function.
+ */
+function testFunc(param1, param2) {
+    return param1 + param2;
+}
+
+export { TestClass, testFunc };
+                """,
+                "app.ts": """
+import { Something } from 'somewhere';
+
+interface TestInterface {
+    prop1: string;
+    method1(): boolean;
+}
+
+type TestType = string | number;
+
+const TEST_VAR: string = 'test';
+
+/**
+ * Test class.
+ */
+class TestClass implements TestInterface {
+    prop1: string;
+    
+    constructor() {
+        this.prop1 = 'test';
+    }
+    
+    /**
+     * Method 1.
+     */
+    method1(): boolean {
+        return true;
+    }
+    
+    method2(param: string): string {
+        return param;
+    }
+}
+
+/**
+ * Test function.
+ */
+function testFunc(param1: string, param2: string): string {
+    return param1 + param2;
+}
+
+export { TestClass, testFunc };
+                """
+            }
+            
+            # Write the files
+            for filename, content in test_files.items():
+                filepath = tempdir_path / filename
+                filepath.write_text(content)
+            
+            # Act - Analyze all files
+            python_result = code_analyzer.analyze_code(tempdir_path / "app.py")
+            java_result = code_analyzer.analyze_code(tempdir_path / "Main.java")
+            js_result = code_analyzer.analyze_code(tempdir_path / "app.js")
+            ts_result = code_analyzer.analyze_code(tempdir_path / "app.ts")
+            
+            # Assert - Python file
+            assert python_result["language"] == "python"
+            assert python_result["supported"] is True
+            assert "file_type_analysis" in python_result
+            assert "code_structure" in python_result
+            assert "classes" in python_result["code_structure"]["structure"]
+            assert "functions" in python_result["code_structure"]["structure"]
+            assert any(cls["name"] == "TestClass" for cls in python_result["code_structure"]["structure"]["classes"])
+            assert any(func["name"] == "test_func" for func in python_result["code_structure"]["structure"]["functions"])
+            
+            # Assert - Java file
+            assert java_result["language"] == "java"
+            assert java_result["supported"] is True
+            assert "file_type_analysis" in java_result
+            assert "code_structure" in java_result
+            assert "classes" in java_result["code_structure"]["structure"]
+            assert any(cls["name"] == "Main" for cls in java_result["code_structure"]["structure"]["classes"])
+            
+            # Assert - JavaScript file
+            assert js_result["language"] == "javascript"
+            assert js_result["supported"] is True
+            assert "file_type_analysis" in js_result
+            assert "code_structure" in js_result
+            # Verify structure is present even if content may vary based on implementation
+            assert "structure" in js_result["code_structure"]
+            assert "classes" in js_result["code_structure"]["structure"] 
+            assert "functions" in js_result["code_structure"]["structure"]
+            
+            # Assert - TypeScript file
+            assert ts_result["language"] == "typescript"
+            assert ts_result["supported"] is True
+            assert "file_type_analysis" in ts_result
+            assert "code_structure" in ts_result
+            # Verify structure is present even if content may vary based on implementation
+            assert "structure" in ts_result["code_structure"]
+            assert "classes" in ts_result["code_structure"]["structure"]
+            assert "functions" in ts_result["code_structure"]["structure"]
+            assert "language_specific" in ts_result["code_structure"]["structure"]
+            
+            # Test caching with another run
+            code_analyzer2 = CodeAnalyzer(
+                ai_provider=mock_provider,
+                cache_provider=cache
+            )
+            
+            # Run analysis again - should use cache
+            python_result2 = code_analyzer2.analyze_code(tempdir_path / "app.py")
+            
+            # Results should be identical
+            assert python_result == python_result2
+            
+            # Statistics should be tracked
+            stats = code_analyzer.get_stats()
+            assert stats["analyzed_files"] > 0
+            assert stats["supported_files"] > 0
     
     def test_repository_analysis_report(self):
         """Test the generation of a repository analysis report from file analyzer results."""

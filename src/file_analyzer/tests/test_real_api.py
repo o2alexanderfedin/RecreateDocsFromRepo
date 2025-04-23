@@ -10,7 +10,9 @@ import tempfile
 from pathlib import Path
 
 from file_analyzer.core.file_type_analyzer import FileTypeAnalyzer
+from file_analyzer.core.code_analyzer import CodeAnalyzer
 from file_analyzer.ai_providers.mistral_provider import MistralProvider
+from file_analyzer.ai_providers.openai_provider import OpenAIProvider
 from file_analyzer.core.cache_provider import InMemoryCache
 
 
@@ -236,3 +238,89 @@ class TestMistralAPIIntegration:
                 
             except subprocess.SubprocessError as e:
                 pytest.fail(f"CLI execution failed: {str(e)}")
+                
+    def test_code_analyzer_with_mistral(self):
+        """Test CodeAnalyzer with Mistral API."""
+        # Get the API key from environment variable
+        api_key = os.environ.get('MISTRAL_API_KEY')
+        
+        # Arrange
+        ai_provider = MistralProvider(api_key=api_key)
+        analyzer = CodeAnalyzer(
+            ai_provider=ai_provider,
+            cache_provider=InMemoryCache()
+        )
+        
+        # Create a Python test file
+        with tempfile.NamedTemporaryFile(suffix='.py', mode='w', delete=False) as f:
+            f.write("""
+            import os
+            import sys
+            from pathlib import Path
+            
+            def get_files(directory):
+                \"\"\"Get all files in a directory.\"\"\"
+                return [f for f in Path(directory).glob('**/*') if f.is_file()]
+                
+            class FileProcessor:
+                \"\"\"Process files in a directory.\"\"\"
+                
+                def __init__(self, directory):
+                    self.directory = directory
+                    
+                def process(self):
+                    \"\"\"Process all files in the directory.\"\"\"
+                    files = get_files(self.directory)
+                    return [self.process_file(f) for f in files]
+                    
+                def process_file(self, file_path):
+                    \"\"\"Process a single file.\"\"\"
+                    return {
+                        'path': str(file_path),
+                        'size': file_path.stat().st_size,
+                        'extension': file_path.suffix
+                    }
+            """)
+            filepath = f.name
+        
+        try:
+            # Act
+            result = analyzer.analyze_code(filepath)
+            
+            # Assert
+            assert result["language"] == "python"
+            assert result["supported"] is True
+            assert "file_type_analysis" in result
+            assert "code_structure" in result
+            
+            # Check that we got reasonable code structure
+            structure = result["code_structure"]["structure"]
+            assert "imports" in structure
+            assert "classes" in structure
+            assert "functions" in structure
+            
+            # Verify key elements were detected
+            imports = structure["imports"]
+            assert any("os" in imp for imp in imports)
+            assert any("sys" in imp for imp in imports)
+            assert any("pathlib" in imp for imp in imports)
+            
+            # Check function was detected
+            functions = structure["functions"]
+            assert any(func["name"] == "get_files" for func in functions)
+            
+            # Check class was detected
+            classes = structure["classes"]
+            assert any(cls["name"] == "FileProcessor" for cls in classes)
+            
+            # Print results for inspection
+            print("\nMistral API Code Analysis Result:")
+            print(f"Language: {result['language']}")
+            print(f"Imports: {structure['imports']}")
+            print(f"Classes: {[cls['name'] for cls in structure['classes']]}")
+            print(f"Methods: {[method for cls in structure['classes'] for method in cls.get('methods', [])]}")
+            print(f"Functions: {[func['name'] for func in structure['functions']]}")
+            
+        finally:
+            # Clean up
+            Path(filepath).unlink(missing_ok=True)
