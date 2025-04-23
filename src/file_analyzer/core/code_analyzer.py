@@ -125,7 +125,12 @@ class CodeAnalyzer:
         language = file_info.get("language", "").lower()
         
         # Check if this is a code file in a supported language
-        if file_info.get("file_type") != "code" or language not in PRIMARY_LANGUAGES:
+        # Note: handle various formats like "code", "source code", etc.
+        file_type = file_info.get("file_type", "").lower()
+        is_code = "code" in file_type
+        
+        # Make case-insensitive comparison for language
+        if not is_code or language.lower() not in [lang.lower() for lang in PRIMARY_LANGUAGES]:
             logger.info(f"File {path} is not a supported code file (type: {file_info.get('file_type')}, language: {language})")
             self.stats["analyzed_files"] += 1
             self.stats["unsupported_files"] += 1
