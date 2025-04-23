@@ -2,7 +2,7 @@
 Interface for AI model providers.
 """
 from abc import ABC, abstractmethod
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 
 
 class AIModelProvider(ABC):
@@ -49,4 +49,28 @@ class AIModelProvider(ABC):
                 "language_specific": {},
                 "confidence": 0.5
             }
+        }
+    
+    def detect_frameworks(self, file_path: str, content: str, language: str) -> Dict[str, Any]:
+        """
+        Detect frameworks and libraries used in a code file.
+        
+        This method is optional and can be implemented by providers
+        that support specialized framework detection. If not implemented,
+        the FrameworkDetector will use a default implementation combining
+        heuristics and general AI analysis.
+        
+        Args:
+            file_path: Path to the file being analyzed
+            content: Content of the file to analyze
+            language: Programming language of the code
+            
+        Returns:
+            Dictionary with detected frameworks and libraries
+        """
+        # Default implementation returns an empty result
+        # Providers should override this for specialized framework detection
+        return {
+            "frameworks": [],
+            "confidence": 0.0
         }

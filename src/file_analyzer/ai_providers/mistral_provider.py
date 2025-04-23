@@ -2,10 +2,12 @@
 Mistral AI provider implementation.
 """
 import json
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 from file_analyzer.ai_providers.provider_interface import AIModelProvider
 from file_analyzer.utils.exceptions import AIProviderError
+# Import will be loaded at runtime to avoid circular imports
+# from file_analyzer.core.framework_detector import FRAMEWORK_SIGNATURES
 
 
 class MistralProvider(AIModelProvider):
@@ -243,4 +245,127 @@ class MistralProvider(AIModelProvider):
         }}
         
         Ensure your analysis is accurate and thorough. This will be used for documentation generation.
+        """
+    
+    def detect_frameworks(self, file_path: str, content: str, language: str) -> Dict[str, Any]:
+        """
+        Detect frameworks and libraries used in a code file using Mistral AI.
+        
+        Args:
+            file_path: Path to the file being analyzed
+            content: Content of the file to analyze
+            language: Programming language of the code
+            
+        Returns:
+            Dictionary with detected frameworks and libraries
+        """
+        prompt = self._create_framework_detection_prompt(file_path, content, language)
+        
+        try:
+            response = self.client.chat.complete(
+                model=self.model_name,
+                messages=[
+                    {"role": "user", "content": prompt}
+                ],
+                response_format={"type": "json_object"}
+            )
+            
+            try:
+                result = json.loads(response.choices[0].message.content)
+                
+                # Ensure we return in the expected format
+                if "frameworks" not in result:
+                    # If response doesn't match expected format, try to extract frameworks
+                    frameworks = []
+                    for key, value in result.items():
+                        if isinstance(value, (dict, list)):
+                            if key.lower() == "frameworks":
+                                # Found the frameworks key but not at the top level
+                                frameworks = value if isinstance(value, list) else [value]
+                                break
+                            elif isinstance(value, dict) and "confidence" in value:
+                                # A framework object not in a list
+                                frameworks.append({"name": key, **value})
+                        elif isinstance(value, (float, int)) and 0 <= value <= 1:
+                            # Simple confidence score
+                            frameworks.append({
+                                "name": key,
+                                "confidence": float(value),
+                                "evidence": ["AI-based detection"],
+                                "features": []
+                            })
+                    
+                    return {"frameworks": frameworks, "confidence": 0.7}
+                
+                return result
+                
+            except json.JSONDecodeError as e:
+                # Return a fallback result if JSON parsing fails
+                return {
+                    "frameworks": [],
+                    "confidence": 0.0,
+                    "error": f"Failed to parse model response as JSON: {e}"
+                }
+                
+        except Exception as e:
+            # Return a fallback result if API call fails
+            return {
+                "frameworks": [],
+                "confidence": 0.0,
+                "error": f"API call failed: {str(e)}"
+            }
+    
+    def _create_framework_detection_prompt(self, file_path: str, content: str, language: str) -> str:
+        """
+        Create a specialized prompt for framework detection.
+        
+        Args:
+            file_path: Path to the file being analyzed
+            content: Content of the file to analyze
+            language: Programming language of the code
+            
+        Returns:
+            Prompt string for framework detection
+        """
+        # Import at runtime to avoid circular imports
+        from file_analyzer.core.framework_detector import FRAMEWORK_SIGNATURES
+        
+        # Get known frameworks for this language to include in the prompt
+        known_frameworks = []
+        if language.lower() in FRAMEWORK_SIGNATURES:
+            known_frameworks = list(FRAMEWORK_SIGNATURES[language.lower()].keys())
+        
+        frameworks_list = ", ".join(known_frameworks) if known_frameworks else f"common {language} frameworks"
+        
+        return f"""
+        Analyze this {language} code file and identify frameworks or libraries in use.
+        
+        File path: {file_path}
+        Code content: 
+        ```{language}
+        {content[:4000]}  # Limit content size for analysis
+        ```
+        
+        Identify all frameworks and libraries used in this code (such as {frameworks_list}).
+        Look for import statements, specialized syntax, framework-specific patterns, and architecture.
+        For each framework detected, provide:
+        1. Name of the framework
+        2. Confidence level (0.0 to 1.0)
+        3. Evidence of usage (imports, patterns, etc.)
+        4. Features being used from the framework
+        
+        Respond ONLY with a JSON object matching this exact schema:
+        {{
+            "frameworks": [
+                {{
+                    "name": "framework name",
+                    "confidence": float (0-1),
+                    "evidence": ["list of evidence that led to detection"],
+                    "features": ["list of framework features being used"]
+                }}
+            ],
+            "confidence": float (0-1)
+        }}
+        
+        If no frameworks are detected, return an empty frameworks array.
         """
