@@ -22,6 +22,7 @@ setup(
         "console_scripts": [
             "file-analyzer=file_analyzer.main:main",
             "repo-scanner=file_analyzer.repo_scanner_cli:main",
+            "cache-manager=file_analyzer.cache_manager:main",
         ],
     },
 )
