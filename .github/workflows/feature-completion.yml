@@ -91,11 +91,19 @@ jobs:
                     state: 'closed'
                   });
                   
+                  const commentBody = `✅ This issue has been automatically closed
+
+The associated feature has been merged into the develop branch and all tests have passed.
+
+**Merged by:** ${context.actor}
+**Merge time:** ${new Date().toISOString()}
+`;
+                  
                   await github.rest.issues.createComment({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
                     issue_number: parseInt(issueNum),
-                    body: `✅ This issue has been automatically closed because the associated feature has been merged into the develop branch.\n\nMerged by: ${context.actor}`
+                    body: commentBody
                   });
                   
                   console.log(`Closed issue #${issueNum}`);

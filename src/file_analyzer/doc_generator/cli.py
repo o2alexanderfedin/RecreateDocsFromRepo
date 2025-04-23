@@ -72,14 +72,14 @@ def parse_args():
     parser.add_argument(
         "--no-code-snippets",
         action="store_true",
-        help="Disable code snippets in documentation"
+        help="Deprecated: Code snippets have been replaced with source file links"
     )
     
     parser.add_argument(
         "--max-code-lines",
         type=int,
         default=15,
-        help="Maximum lines for code snippets"
+        help="Deprecated: Code snippets have been replaced with source file links"
     )
     
     parser.add_argument(
@@ -213,11 +213,16 @@ def main():
     # Generate documentation
     logger.info(f"Generating documentation in {args.output_dir}")
     
+    # Notify about code snippets deprecation if those arguments were used
+    if args.no_code_snippets or args.max_code_lines != 15:
+        logger.warning("Code snippets have been replaced with direct links to source files. "
+                       "The --no-code-snippets and --max-code-lines arguments are deprecated.")
+    
     stats = generate_documentation(
         repo_analysis=repo_analysis,
         output_dir=args.output_dir,
         template_dir=args.template_dir,
-        include_code_snippets=not args.no_code_snippets,
+        include_code_snippets=False,  # Always use source file links instead
         max_code_snippet_lines=args.max_code_lines,
         include_relationships=not args.no_relationships,
         include_framework_details=not args.no_framework_details,

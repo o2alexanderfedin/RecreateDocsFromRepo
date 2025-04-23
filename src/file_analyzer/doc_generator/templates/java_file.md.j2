@@ -1,56 +1,56 @@
-# Python Module: {{ file_path }}
+# Java Class: {{ file_path }}
 
 ## Overview
 
 **Type:** {{ file_type }}  
-**Language:** Python  
+**Language:** Java  
 {% if frameworks %}**Frameworks:** {{ frameworks|map(attribute='name')|join(", ") }}{% endif %}
 
-## Module Structure
-
-{% if imports %}
-### Imports
-
-```python
-{% for import in imports %}
-{{ import }}
-{% endfor %}
-```
-{% endif %}
+## Class Structure
 
 {% if classes %}
 ### Classes
 
 {% for class in classes %}
-#### `class {{ class.name }}`
+#### `class {{ class.name }}{% if class.extends %} extends {{ class.extends }}{% endif %}{% if class.implements %} implements {{ class.implements|join(", ") }}{% endif %}`
 
 {% if class.documentation %}{{ class.documentation }}{% endif %}
 
 {% if class.methods %}
 **Methods:**
 
-| Method | Parameters | Description |
-|--------|------------|-------------|
+| Method | Return Type | Access | Description |
+|--------|------------|--------|-------------|
 {% for method in class.methods %}
-| `{{ method }}` | - | {% if method.documentation %}{{ method.documentation|truncate(50) }}{% endif %} |
+| `{{ method.name }}({{ method.parameters|join(", ") }})` | {% if method.return_type %}{{ method.return_type }}{% else %}-{% endif %} | {% if method.access %}{{ method.access }}{% else %}-{% endif %} | {% if method.documentation %}{{ method.documentation|truncate(50) }}{% endif %} |
 {% endfor %}
 {% endif %}
 
 {% if class.properties %}
 **Properties:**
 
-| Property | Description |
-|----------|-------------|
+| Property | Type | Access | Description |
+|----------|------|--------|-------------|
 {% for prop in class.properties %}
-| `{{ prop }}` | - |
+| `{{ prop.name }}` | {% if prop.type %}{{ prop.type }}{% else %}-{% endif %} | {% if prop.access %}{{ prop.access }}{% else %}-{% endif %} | {% if prop.documentation %}{{ prop.documentation }}{% endif %} |
 {% endfor %}
 {% endif %}
 
 {% endfor %}
+{% endif %}
+
+{% if imports %}
+### Imports
+
+```java
+{% for import in imports %}
+{{ import }}
+{% endfor %}
+```
 {% endif %}
 
 {% if functions %}
-### Functions
+### Static Methods
 
 {% for function in functions %}
 #### `{{ function.name }}({{ function.parameters|join(", ") }})`
@@ -59,19 +59,19 @@
 
 **Parameters:**
 {% for param in function.parameters %}
-- `{{ param }}`
+- `{{ param }}`{% if param.type %}: {{ param.type }}{% endif %}
 {% endfor %}
 
 {% endfor %}
 {% endif %}
 
 {% if variables %}
-### Module-Level Variables
+### Class Variables/Constants
 
-| Variable | Scope | Description |
-|----------|-------|-------------|
+| Variable | Type | Access | Description |
+|----------|------|--------|-------------|
 {% for variable in variables %}
-| `{{ variable.name }}` | {{ variable.scope }} | - |
+| `{{ variable.name }}` | {% if variable.type %}{{ variable.type }}{% else %}-{% endif %} | {% if variable.access %}{{ variable.access }}{% else %}-{% endif %} | {% if variable.documentation %}{{ variable.documentation }}{% endif %} |
 {% endfor %}
 {% endif %}
 
@@ -98,10 +98,10 @@
 {% endif %}
 
 {% if relationships %}
-## Module Dependencies
+## Class Dependencies
 
 {% if relationships.imports %}
-### Imports Modules
+### Imports Classes
 {% for import_file in relationships.imports %}
 - [{{ import_file }}]({{ import_file }}.md)
 {% endfor %}

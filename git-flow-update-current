@@ -33,7 +33,13 @@ if [ -n "$PREVIOUS_TAG" ]; then
         echo "Issues to close: $ISSUES"
         echo ""
         echo "To close these issues on GitHub, you can run:"
-        echo "gh issue close $ISSUES -c \"Closed by release $LATEST_TAG\""
+        echo "gh issue close [ISSUE_NUMBER] -c \"\$(cat <<EOF"
+        echo "Closed by release $LATEST_TAG"
+        echo ""
+        echo "This issue has been automatically closed as part of the $LATEST_TAG release process."
+        echo "The changes that address this issue are now available in the latest release."
+        echo "EOF"
+        echo ")\""
         echo ""
         
         # If gh CLI is installed, offer to close issues automatically
@@ -43,7 +49,14 @@ if [ -n "$PREVIOUS_TAG" ]; then
             if [[ $REPLY =~ ^[Yy]$ ]]; then
                 for ISSUE in $ISSUES; do
                     ISSUE_NUM=${ISSUE#\#}  # Remove # prefix
-                    gh issue close "$ISSUE_NUM" -c "Closed by release $LATEST_TAG"
+                    # Use process substitution to properly handle multiline text
+                    gh issue close "$ISSUE_NUM" -c "$(cat <<EOF
+Closed by release $LATEST_TAG
+
+This issue has been automatically closed as part of the $LATEST_TAG release process.
+The changes that address this issue are now available in the latest release.
+EOF
+)"
                     echo "Closed issue $ISSUE"
                 done
             fi
