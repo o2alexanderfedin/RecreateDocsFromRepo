@@ -21,8 +21,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
        b. `git merge --no-ff feature/branch-name -m "Merge feature/branch-name: Description"`
        c. `git push origin develop`
        d. `git branch -d feature/branch-name && git push origin --delete feature/branch-name`
-  5. If issue wasn't closed automatically (missing keyword in commit):
-     - `gh issue close ISSUE-NUMBER --reason completed`
+  5. Always verify issue is closed and close it manually if needed:
+     - Check issue status: `gh issue view ISSUE-NUMBER`
+     - Close issue manually: `gh issue close ISSUE-NUMBER --reason completed`
+     - Add closure comment: `gh issue comment ISSUE-NUMBER --body "Implementation complete and merged to develop"`
   
 - For releases:
   1. Start release: `git flow release start VERSION`
@@ -53,9 +55,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Close issues automatically when work is complete:
   - Include "Closes #ISSUE-NUMBER" or "Fixes #ISSUE-NUMBER" in commit message
   - Example: `git commit -m "Implement file relationship linkage. Closes #43"`
-  - Alternative (if commit message didn't include close keyword):
-    - Use GitHub CLI: `gh issue close ISSUE-NUMBER --reason completed`
-    - Add comment with close: `gh issue comment ISSUE-NUMBER --body "Completed in commit SHA"`
+  - IMPORTANT: Always explicitly verify issue closure:
+    - Check issue status: `gh issue view ISSUE-NUMBER`
+    - Close issue manually if not closed automatically: `gh issue close ISSUE-NUMBER --reason completed`
+    - Add closure comment: `gh issue comment ISSUE-NUMBER --body "Implementation complete in commit SHA: $(git rev-parse HEAD)"`
 
 ## Branch Strategy (Git Flow)
 - `main`: Production-ready code, only updated through:
