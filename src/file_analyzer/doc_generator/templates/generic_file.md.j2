@@ -1,10 +1,18 @@
 # File: {{ file_path }}
 
+{% if ai_documentation and ai_documentation.description %}
+{{ ai_documentation.description }}
+{% endif %}
+
 ## Overview
 
 **Type:** {{ file_type }}  
 **Language:** {{ language }}  
 {% if frameworks %}**Frameworks:** {{ frameworks|map(attribute='name')|join(", ") }}{% endif %}
+
+{% if ai_documentation and ai_documentation.purpose %}
+**Purpose:** {{ ai_documentation.purpose }}
+{% endif %}
 
 ## Content Analysis
 
@@ -134,10 +142,32 @@
 {% endif %}
 {% endif %}
 
+{% if ai_documentation and ai_documentation.usage_examples %}
+## Usage Examples
+
+{% for example in ai_documentation.usage_examples %}
+{{ example }}
+{% endfor %}
+{% endif %}
+
+{% if ai_documentation and ai_documentation.main_concepts %}
+## Main Concepts
+
+{% for concept in ai_documentation.main_concepts %}
+- {{ concept }}
+{% endfor %}
+{% endif %}
+
+{% if ai_documentation and ai_documentation.architecture_notes %}
+## Architecture Notes
+
+{{ ai_documentation.architecture_notes }}
+{% endif %}
+
 ## Source File
 
 📄 [View source file]({{ rel_path }})
 
 ---
 
-*Documentation generated automatically by File Analyzer*
+*Documentation generated automatically by File Analyzer{% if ai_documentation %} with AI assistance{% endif %}*

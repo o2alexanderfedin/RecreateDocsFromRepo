@@ -11,6 +11,12 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional, Union
 import jinja2
 
+from file_analyzer.core.file_reader import FileReader
+from file_analyzer.doc_generator.ai_documentation_generator import (
+    generate_file_documentation,
+    AiDocumentationGenerator
+)
+
 logger = logging.getLogger("file_analyzer.doc_generator")
 
 class DocumentationConfig:
@@ -24,6 +30,8 @@ class DocumentationConfig:
         max_code_snippet_lines: int = 15,
         include_relationships: bool = True,
         include_framework_details: bool = True,
+        include_ai_documentation: bool = True,
+        ai_provider: Optional[Any] = None,
         exclude_patterns: Optional[List[str]] = None
     ):
         """
@@ -36,6 +44,8 @@ class DocumentationConfig:
             max_code_snippet_lines: Maximum lines for code snippets
             include_relationships: Whether to include file relationships
             include_framework_details: Whether to include framework details
+            include_ai_documentation: Whether to include AI-generated documentation
+            ai_provider: AI provider to use for documentation generation
             exclude_patterns: Patterns of files to exclude from documentation
         """
         self.output_dir = output_dir
@@ -44,6 +54,8 @@ class DocumentationConfig:
         self.max_code_snippet_lines = max_code_snippet_lines
         self.include_relationships = include_relationships
         self.include_framework_details = include_framework_details
+        self.include_ai_documentation = include_ai_documentation
+        self.ai_provider = ai_provider
         self.exclude_patterns = exclude_patterns or []
 
 
@@ -209,6 +221,28 @@ class MarkdownGenerator:
                 file_results = {file_path: file_result}
             relationships = self._get_file_relationships(file_path, repo_path, file_results)
         
+        # Generate AI documentation if enabled
+        ai_documentation = None
+        if self.config.include_ai_documentation:
+            try:
+                # Read file content
+                file_reader = FileReader()
+                try:
+                    file_content = file_reader.read_file(file_path)
+                    
+                    # Generate AI documentation
+                    ai_documentation = generate_file_documentation(
+                        file_path=file_path,
+                        content=file_content,
+                        metadata=file_result,
+                        ai_provider=self.config.ai_provider
+                    )
+                    logger.debug(f"Generated AI documentation for {file_path}")
+                except Exception as e:
+                    logger.warning(f"Could not read file content for AI documentation: {file_path}: {str(e)}")
+            except Exception as e:
+                logger.error(f"Error generating AI documentation for {file_path}: {str(e)}")
+        
         # Prepare template context
         context = {
             "file_path": file_path,
@@ -223,7 +257,8 @@ class MarkdownGenerator:
             "framework_details": file_framework_details if self.config.include_framework_details else None,
             "code_snippet": code_snippet,
             "relationships": relationships,
-            "graph_data": relationships.get("graph_data") if relationships else None
+            "graph_data": relationships.get("graph_data") if relationships else None,
+            "ai_documentation": ai_documentation
         }
         
         # Determine which template to use based on language or file type
@@ -981,6 +1016,8 @@ def generate_documentation(
     max_code_snippet_lines: int = 15,
     include_relationships: bool = True,
     include_framework_details: bool = True,
+    include_ai_documentation: bool = True,
+    ai_provider: Optional[Any] = None,
     exclude_patterns: Optional[List[str]] = None
 ) -> Dict[str, Any]:
     """
@@ -997,6 +1034,8 @@ def generate_documentation(
         max_code_snippet_lines: Maximum lines for code snippets
         include_relationships: Whether to include file relationships
         include_framework_details: Whether to include framework details
+        include_ai_documentation: Whether to include AI-generated documentation
+        ai_provider: AI provider to use for documentation generation
         exclude_patterns: Patterns of files to exclude from documentation
         
     Returns:
@@ -1009,6 +1048,8 @@ def generate_documentation(
         max_code_snippet_lines=max_code_snippet_lines,
         include_relationships=include_relationships,
         include_framework_details=include_framework_details,
+        include_ai_documentation=include_ai_documentation,
+        ai_provider=ai_provider,
         exclude_patterns=exclude_patterns or []
     )
     

@@ -95,6 +95,12 @@ def parse_args():
     )
     
     parser.add_argument(
+        "--no-ai-documentation",
+        action="store_true",
+        help="Disable AI-generated documentation"
+    )
+    
+    parser.add_argument(
         "--cache-dir",
         help="Directory for caching analysis results"
     )
@@ -159,6 +165,9 @@ def main():
     args = parse_args()
     configure_logging(args.verbose)
     
+    # Create AI provider (used for both analysis and documentation)
+    ai_provider = create_ai_provider(args.provider, args.api_key, args.model)
+    
     # If analysis results are provided, load them
     if args.analysis_file:
         logger.info(f"Loading analysis results from {args.analysis_file}")
@@ -167,9 +176,6 @@ def main():
     # Otherwise, perform repository analysis
     else:
         logger.info(f"Analyzing repository: {args.repo_path}")
-        
-        # Create AI provider
-        ai_provider = create_ai_provider(args.provider, args.api_key, args.model)
         
         # Create cache provider
         cache_provider = None
@@ -226,6 +232,8 @@ def main():
         max_code_snippet_lines=args.max_code_lines,
         include_relationships=not args.no_relationships,
         include_framework_details=not args.no_framework_details,
+        include_ai_documentation=not args.no_ai_documentation,
+        ai_provider=ai_provider,  # Pass the AI provider to documentation generator
         exclude_patterns=args.exclude
     )
     
