@@ -1,0 +1,18 @@
+# Core dependencies
+python-dotenv>=1.0.0
+requests>=2.31.0
+loguru>=0.7.0
+typer>=0.9.0
+
+# Code analysis
+ast>=0.8.0
+abstract-syntax-tree>=0.0.1
+
+# Documentation generation
+jinja2>=3.1.2
+pyyaml>=6.0.1
+markdown>=3.5
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
