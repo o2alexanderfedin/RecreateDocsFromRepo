@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.11.0] - 2025-04-23
+
+### Added
+- Enhanced Markdown formatting system:
+  - Consistent styling for AI-generated documentation
+  - GitHub Flavored Markdown compliance 
+  - Automatic table of contents generation with anchor links
+  - HTML sanitization for security
+  - Specialized formatting for code blocks, tables, and lists
+  - Proper handling of special characters and escaping
+- Documentation improvements:
+  - Better section organization with standardized headings
+  - Enhanced readability with consistent styling
+  - Improved cross-references between sections
+  - Better formatting for key components tables
+
 ## [0.10.0] - 2025-04-23
 
 ### Added

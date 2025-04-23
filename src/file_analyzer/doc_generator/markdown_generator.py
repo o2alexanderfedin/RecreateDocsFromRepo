@@ -16,6 +16,11 @@ from file_analyzer.doc_generator.ai_documentation_generator import (
     generate_file_documentation,
     AiDocumentationGenerator
 )
+from file_analyzer.doc_generator.markdown_formatter import (
+    format_documentation,
+    sanitize_markdown,
+    create_anchor_link
+)
 
 logger = logging.getLogger("file_analyzer.doc_generator")
 
@@ -98,6 +103,8 @@ class MarkdownGenerator:
         
         # Add custom filters
         self.jinja_env.filters['basename'] = lambda path: os.path.basename(path)
+        self.jinja_env.filters['sanitize_markdown'] = sanitize_markdown
+        self.jinja_env.filters['create_anchor'] = create_anchor_link
         
         # Create output directory if it doesn't exist
         os.makedirs(config.output_dir, exist_ok=True)
@@ -231,12 +238,25 @@ class MarkdownGenerator:
                     file_content = file_reader.read_file(file_path)
                     
                     # Generate AI documentation
-                    ai_documentation = generate_file_documentation(
+                    raw_ai_documentation = generate_file_documentation(
                         file_path=file_path,
                         content=file_content,
                         metadata=file_result,
                         ai_provider=self.config.ai_provider
                     )
+                    
+                    # Format the AI documentation with proper Markdown
+                    ai_documentation = raw_ai_documentation
+                    if raw_ai_documentation:
+                        try:
+                            # Apply markdown formatting to the raw AI documentation
+                            ai_documentation = format_documentation(file_path, raw_ai_documentation)
+                            logger.debug(f"Formatted AI documentation for {file_path}")
+                        except Exception as e:
+                            logger.warning(f"Error formatting AI documentation: {str(e)}")
+                            # Fall back to raw documentation if formatting fails
+                            ai_documentation = raw_ai_documentation
+                    
                     logger.debug(f"Generated AI documentation for {file_path}")
                 except Exception as e:
                     logger.warning(f"Could not read file content for AI documentation: {file_path}: {str(e)}")
