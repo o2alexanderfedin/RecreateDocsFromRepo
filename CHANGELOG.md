@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.9.0] - 2025-04-23
+
+### Added
+- Enhanced documentation template system:
+  - Added specialized templates for Java, JavaScript, TypeScript, and C/C++ files
+  - Replaced code snippets with direct links to source files
+  - Enhanced file relationship detection for Java and C/C++ files
+  - Added better support for language-specific features
+- Improved user experience:
+  - Cleaner documentation with source file links instead of potentially incomplete snippets
+  - Better rendering of language-specific constructs
+  - Streamlined navigation between related files
+
+### Changed
+- Updated template selection logic to handle multiple language-specific templates
+- Deprecated code snippet CLI options in favor of direct source links
+- Improved tests to be more resilient to template changes
+
 ## [0.8.0] - 2025-04-23
 
 ### Added
