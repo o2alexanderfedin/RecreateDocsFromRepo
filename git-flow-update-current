@@ -1,0 +1,23 @@
+#!/bin/bash
+#
+# Update release/current to point to the latest release tag
+#
+# This script should be run after finishing a release with git flow
+# It assumes that the most recent tag is the latest release
+#
+
+# Get the latest version tag
+LATEST_TAG=$(git tag --sort=-v:refname | head -n 1)
+
+echo "Updating release/current to point to $LATEST_TAG..."
+
+# Update the release/current branch
+git checkout release/current || git checkout -b release/current "$LATEST_TAG"
+git reset --hard "$LATEST_TAG"
+git push --force origin release/current
+
+# Return to the branch where you were before
+git checkout -
+
+echo "release/current now points to $LATEST_TAG"
+echo "Remember to run this script after completing a release with git flow"
