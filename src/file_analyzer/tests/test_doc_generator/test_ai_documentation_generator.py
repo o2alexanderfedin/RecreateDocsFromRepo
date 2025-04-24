@@ -98,12 +98,76 @@ class TestAIDocumentationGenerator(unittest.TestCase):
                             "parameters": [],
                             "documentation": "This is a sample function."
                         }
-                    ]
+                    ],
+                    "variables": []
                 }
             },
             "frameworks": [
                 {"name": "sample_framework", "confidence": 0.8}
             ]
+        }
+        
+        # Sample relationship data
+        self.relationship_data = {
+            "imports": ["os.py", "sys.py"],
+            "imported_by": ["main.py", "utils.py"],
+            "inherits_from": ["base.py"],
+            "inherited_by": ["child.py"],
+            "references": ["config.py"],
+            "referenced_by": ["app.py"]
+        }
+        
+        # Sample config file content
+        self.config_file_content = """
+        {
+            "database": {
+                "host": "localhost",
+                "port": 5432,
+                "name": "mydb"
+            },
+            "logging": {
+                "level": "info",
+                "file": "/var/log/app.log"
+            }
+        }
+        """
+        
+        # Sample config metadata
+        self.config_metadata = {
+            "file_type": "config",
+            "language": "json",
+            "config_structure": {
+                "parameters": [
+                    {
+                        "name": "database.host",
+                        "value": "localhost",
+                        "required": True,
+                        "description": "Database host address"
+                    },
+                    {
+                        "name": "database.port",
+                        "value": 5432,
+                        "required": True,
+                        "description": "Database port"
+                    },
+                    {
+                        "name": "logging.level",
+                        "value": "info",
+                        "required": False,
+                        "description": "Logging level"
+                    }
+                ],
+                "environment_vars": [
+                    {
+                        "name": "DB_HOST",
+                        "description": "Override database host"
+                    },
+                    {
+                        "name": "DB_PORT",
+                        "description": "Override database port"
+                    }
+                ]
+            }
         }
     
     def test_init(self):
@@ -123,6 +187,9 @@ class TestAIDocumentationGenerator(unittest.TestCase):
         self.assertIn("usage_examples", result)
         self.assertIn("key_components", result)
         self.assertIn("main_concepts", result)
+        self.assertIn("compilation_instructions", result)
+        self.assertIn("dependencies", result)
+        self.assertIn("file_type_specific", result)
         
         # Check content types
         self.assertIsInstance(result["description"], str)
@@ -130,6 +197,163 @@ class TestAIDocumentationGenerator(unittest.TestCase):
         self.assertIsInstance(result["usage_examples"], list)
         self.assertIsInstance(result["key_components"], list)
         self.assertIsInstance(result["main_concepts"], list)
+        self.assertIsInstance(result["compilation_instructions"], str)
+        self.assertIsInstance(result["dependencies"], list)
+        self.assertIsInstance(result["file_type_specific"], dict)
+    
+    def test_generate_file_documentation_with_relationships(self):
+        """Test generation of file documentation with relationship data."""
+        # We need to verify the relationships are properly processed
+        # So we'll directly test the architecture_notes method
+        
+        arch_notes = self.ai_doc_generator._generate_architecture_notes(
+            "sample.py", self.metadata, self.relationship_data
+        )
+        
+        # Verify that relationship data is used in architecture notes
+        self.assertIn("imported by", arch_notes.lower())
+        
+        # Test the dependencies extraction method directly
+        dependencies = self.ai_doc_generator._extract_dependencies(
+            "sample.py", self.metadata, self.relationship_data
+        )
+        
+        # Verify dependencies are extracted from relationship data
+        self.assertTrue(len(dependencies) > 0)
+        found_import = False
+        found_inheritance = False
+        
+        for dep in dependencies:
+            if dep.get("type") == "import":
+                found_import = True
+            if dep.get("type") == "inheritance":
+                found_inheritance = True
+                
+        self.assertTrue(found_import, "Should find import dependencies")
+        self.assertTrue(found_inheritance, "Should find inheritance dependencies")
+    
+    def test_file_category_detection(self):
+        """Test file category detection."""
+        # Create local instance to avoid test interference
+        ai_doc_generator = AiDocumentationGenerator(self.mock_provider)
+        
+        # Test code files
+        self.assertEqual(
+            ai_doc_generator._determine_file_category("file.py", "python", "code"),
+            "code"
+        )
+        
+        # Test config files
+        self.assertEqual(
+            ai_doc_generator._determine_file_category("config.json", "json", "config"),
+            "config"
+        )
+        self.assertEqual(
+            ai_doc_generator._determine_file_category("settings.yaml", "yaml", ""),
+            "config"
+        )
+        self.assertEqual(
+            ai_doc_generator._determine_file_category(".env", "", ""),
+            "config"
+        )
+        
+        # Test build files with specific file_type
+        self.assertEqual(
+            ai_doc_generator._determine_file_category("build.gradle", "", "build"),
+            "build"
+        )
+        # Test build files by name
+        self.assertEqual(
+            ai_doc_generator._determine_file_category("Dockerfile", "", ""),
+            "build"
+        )
+        self.assertEqual(
+            ai_doc_generator._determine_file_category("Makefile", "", ""),
+            "build"
+        )
+        
+        # Test markup files
+        self.assertEqual(
+            ai_doc_generator._determine_file_category("README.md", "markdown", ""),
+            "markup"
+        )
+        self.assertEqual(
+            ai_doc_generator._determine_file_category("docs.html", "html", ""),
+            "markup"
+        )
+        
+        # Test test files
+        self.assertEqual(
+            ai_doc_generator._determine_file_category("test_file.py", "python", ""),
+            "test"
+        )
+        self.assertEqual(
+            ai_doc_generator._determine_file_category("tests/module.py", "python", ""),
+            "test"
+        )
+    
+    def test_generate_config_documentation(self):
+        """Test generation of documentation for config files."""
+        # Test the _generate_config_specific_docs method directly
+        config_metadata = {
+            "language": "json",
+            "config_structure": {
+                "parameters": [
+                    {
+                        "name": "database.host",
+                        "value": "localhost",
+                        "required": True,
+                        "description": "Database host address"
+                    },
+                    {
+                        "name": "database.port",
+                        "value": 5432,
+                        "required": True,
+                        "description": "Database port"
+                    }
+                ],
+                "environment_vars": [
+                    {
+                        "name": "DB_HOST",
+                        "description": "Override database host"
+                    }
+                ]
+            }
+        }
+        
+        # Test config files directly using the specific method
+        config_specific = self.ai_doc_generator._generate_config_specific_docs(
+            "config.json", self.config_file_content, config_metadata
+        )
+        
+        # Check the format and structure
+        self.assertEqual(config_specific["format"], "json")
+        self.assertEqual(len(config_specific["parameters"]), 2)
+        self.assertEqual(len(config_specific["environment_vars"]), 1)
+        
+        # Test the config usage example generation method directly
+        example = self.ai_doc_generator._generate_config_usage_example(
+            "config.json", self.config_file_content, {"language": "json"}
+        )
+        
+        # Verify example contains JSON-related content
+        self.assertIn("json", example.lower())
+    
+    def test_get_default_value_for_param(self):
+        """Test parameter default value generation."""
+        # Test common parameter types
+        self.assertEqual(self.ai_doc_generator._get_default_value_for_param("file_path"), "'path/to/file'")
+        self.assertEqual(self.ai_doc_generator._get_default_value_for_param("name"), "'example_name'")
+        self.assertEqual(self.ai_doc_generator._get_default_value_for_param("user_id"), "'id_123'")
+        self.assertEqual(self.ai_doc_generator._get_default_value_for_param("api_url"), "'https://example.com'")
+        self.assertEqual(self.ai_doc_generator._get_default_value_for_param("count"), "10")
+        self.assertEqual(self.ai_doc_generator._get_default_value_for_param("index"), "0")
+        self.assertEqual(self.ai_doc_generator._get_default_value_for_param("is_enabled"), "True")
+        self.assertEqual(self.ai_doc_generator._get_default_value_for_param("options"), "{}")
+        self.assertEqual(self.ai_doc_generator._get_default_value_for_param("data"), "[]")
+        
+        # Test fallback
+        self.assertEqual(self.ai_doc_generator._get_default_value_for_param("unknown"), "value")
     
     def test_generate_file_documentation_empty_metadata(self):
         """Test with empty metadata."""
@@ -140,6 +364,29 @@ class TestAIDocumentationGenerator(unittest.TestCase):
         # Should still produce valid output with empty metadata
         self.assertIn("description", result)
         self.assertIn("purpose", result)
+    
+    def test_extract_module_docstring(self):
+        """Test docstring extraction."""
+        # Test Python triple-quote docstring
+        python_docstring = '"""\nThis is a docstring.\nMultiple lines.\n"""'
+        self.assertEqual(
+            self.ai_doc_generator._extract_module_docstring(python_docstring),
+            "This is a docstring.\nMultiple lines."
+        )
+        
+        # Test Python single-quote docstring
+        python_single_docstring = "'''\nSingle quote docstring.\n'''"
+        self.assertEqual(
+            self.ai_doc_generator._extract_module_docstring(python_single_docstring),
+            "Single quote docstring."
+        )
+        
+        # Test JavaDoc style
+        javadoc = "/**\n * JavaDoc style comment.\n * Another line.\n */"
+        self.assertEqual(
+            self.ai_doc_generator._extract_module_docstring(javadoc),
+            "JavaDoc style comment.\nAnother line."
+        )
     
     def test_integration_with_markdown_generator(self):
         """Test integration with the Markdown generation process."""
@@ -154,10 +401,21 @@ class TestAIDocumentationGenerator(unittest.TestCase):
         self.assertIn('content', sig.parameters)
         self.assertIn('metadata', sig.parameters)
         self.assertIn('ai_provider', sig.parameters)
+        self.assertIn('relationship_data', sig.parameters)
 
 
 class TestGenerateFileDocumentation(unittest.TestCase):
     """Tests for the generate_file_documentation convenience function."""
+    
+    def setUp(self):
+        """Set up test environment."""
+        # Sample relationship data
+        self.relationship_data = {
+            "imports": ["os.py", "sys.py"],
+            "imported_by": ["main.py", "utils.py"],
+            "inherits_from": ["base.py"],
+            "inherited_by": ["child.py"]
+        }
     
     def test_generate_file_documentation_function(self):
         """Test the generate_file_documentation convenience function."""
@@ -175,6 +433,21 @@ class TestGenerateFileDocumentation(unittest.TestCase):
         self.assertIn("purpose", result)
         self.assertIn("usage_examples", result)
     
+    def test_generate_file_documentation_with_relationship_data(self):
+        """Test generate_file_documentation with relationship data."""
+        mock_provider = MockAIDocProvider()
+        
+        result = generate_file_documentation(
+            "sample.py",
+            "sample content",
+            {"file_type": "code", "language": "python"},
+            ai_provider=mock_provider,
+            relationship_data=self.relationship_data
+        )
+        
+        # Verify relationship data is passed through correctly
+        self.assertIn("dependencies", result)
+    
     def test_generate_file_documentation_with_default_provider(self):
         """Test generate_file_documentation with default mock provider."""
         # This should use the MockAIProvider internally
@@ -186,6 +459,90 @@ class TestGenerateFileDocumentation(unittest.TestCase):
         
         # Basic validation - should still work with default provider
         self.assertIn("description", result)
+
+
+class TestSpecializedDocumentationGeneration(unittest.TestCase):
+    """Tests for specialized documentation generation."""
+    
+    def setUp(self):
+        """Set up test environment."""
+        self.mock_provider = MockAIProvider()
+        self.ai_doc_generator = AiDocumentationGenerator(self.mock_provider)
+    
+    def test_config_specific_docs(self):
+        """Test generation of config-specific documentation."""
+        config_metadata = {
+            "language": "json",
+            "config_structure": {
+                "parameters": [
+                    {"name": "server.port", "value": 8080, "required": True, "description": "Server port number"},
+                    {"name": "db.url", "value": "localhost", "required": True, "description": "Database URL"}
+                ],
+                "environment_vars": [
+                    {"name": "SERVER_PORT", "description": "Override server port"},
+                    {"name": "DB_URL", "description": "Override database URL"}
+                ]
+            }
+        }
+        
+        result = self.ai_doc_generator._generate_config_specific_docs(
+            "config.json", '{"server": {"port": 8080}}', config_metadata
+        )
+        
+        self.assertEqual(result["format"], "json")
+        self.assertEqual(len(result["parameters"]), 2)
+        self.assertEqual(len(result["environment_vars"]), 2)
+        self.assertEqual(len(result["required_values"]), 2)
+    
+    def test_build_specific_docs(self):
+        """Test generation of build-specific documentation."""
+        # Test Dockerfile
+        dockerfile_result = self.ai_doc_generator._generate_build_specific_docs(
+            "Dockerfile", "FROM python:3.9\nENV PORT 8080", {}
+        )
+        
+        self.assertEqual(dockerfile_result["build_type"], "Docker")
+        self.assertIn("build", dockerfile_result["targets"])
+        self.assertEqual(len(dockerfile_result["dependencies"]), 1)
+        self.assertEqual(len(dockerfile_result["environment_requirements"]), 1)
+        
+        # Test package.json
+        package_json_result = self.ai_doc_generator._generate_build_specific_docs(
+            "package.json", '{"scripts": {"test": "jest"}}', {}
+        )
+        
+        self.assertEqual(package_json_result["build_type"], "NPM/Yarn")
+        self.assertIn("test", package_json_result["targets"])
+    
+    def test_test_specific_docs(self):
+        """Test generation of test-specific documentation."""
+        test_content = """
+        import unittest
+        from mymodule import MyClass
+        
+        class TestMyClass(unittest.TestCase):
+            def test_method(self):
+                self.assertTrue(True)
+        """
+        
+        test_metadata = {
+            "language": "python",
+            "code_structure": {
+                "structure": {
+                    "imports": ["unittest", "from mymodule import MyClass"],
+                    "functions": [{"name": "test_method", "documentation": "Test the method"}]
+                }
+            }
+        }
+        
+        result = self.ai_doc_generator._generate_test_specific_docs(
+            "test_module.py", test_content, test_metadata, None
+        )
+        
+        self.assertEqual(result["test_framework"], "unittest")
+        self.assertIn("Unit Tests", result["test_types"])
+        self.assertEqual(len(result["tested_components"]), 1)
+        self.assertEqual(len(result["test_cases"]), 1)
 
 
 if __name__ == "__main__":
