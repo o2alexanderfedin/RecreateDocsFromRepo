@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.17.0] - 2025-04-26
+
+### Added
+- Enhanced AI Documentation Generator system:
+  - File category detection (code, config, build, markup, test)
+  - Specialized documentation for different file types
+  - Rich usage examples with language-specific context
+  - Improved parameter documentation and dependency extraction
+  - Comprehensive relationship mapping in architecture notes
+  - Intelligent code example generation with sensible defaults
+  - Documentation for compilation/execution instructions
+  - Specialized handling for test files with test case documentation
+  - Better integration with existing documentation systems
+  - Improved docstring extraction across multiple languages
+
 ## [0.16.0] - 2025-04-25
 
 ### Added
