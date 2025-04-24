@@ -17,6 +17,8 @@ from file_analyzer.doc_generator.base_diagram_generator import BaseDiagramGenera
 from file_analyzer.doc_generator.logical_view_generator import LogicalViewGenerator
 from file_analyzer.doc_generator.process_view_generator import ProcessViewGenerator
 from file_analyzer.doc_generator.development_view_generator import DevelopmentViewGenerator
+from file_analyzer.doc_generator.physical_view_generator import PhysicalViewGenerator
+from file_analyzer.doc_generator.scenarios_view_generator import ScenariosViewGenerator
 
 logger = logging.getLogger("file_analyzer.diagram_factory")
 
@@ -61,7 +63,8 @@ class DiagramFactory:
         Create a diagram generator for the specified view type.
         
         Args:
-            view_type: Type of architectural view ('logical', 'process', 'development')
+            view_type: Type of architectural view ('logical', 'process', 'development', 
+                                                 'physical', 'scenarios')
             
         Returns:
             Appropriate diagram generator instance
@@ -98,6 +101,22 @@ class DiagramFactory:
                 file_hasher=self.file_hasher,
                 cache_provider=self.cache_provider
             )
+        elif view_type == "physical":
+            generator = PhysicalViewGenerator(
+                ai_provider=self.ai_provider,
+                code_analyzer=self.code_analyzer,
+                file_reader=self.file_reader,
+                file_hasher=self.file_hasher,
+                cache_provider=self.cache_provider
+            )
+        elif view_type == "scenarios":
+            generator = ScenariosViewGenerator(
+                ai_provider=self.ai_provider,
+                code_analyzer=self.code_analyzer,
+                file_reader=self.file_reader,
+                file_hasher=self.file_hasher,
+                cache_provider=self.cache_provider
+            )
         else:
             raise ValueError(f"Unsupported view type: {view_type}")
         
@@ -126,6 +145,14 @@ class DiagramFactory:
             "development": {
                 "package": "Package diagram showing code organization",
                 "component": "Component diagram showing logical components and interfaces"
+            },
+            "physical": {
+                "deployment": "Deployment diagram showing hardware nodes and artifacts",
+                "infrastructure": "Infrastructure diagram showing cloud resources and connections"
+            },
+            "scenarios": {
+                "use_case": "Use case diagram showing actors and system functionality",
+                "user_flow": "User flow diagram showing step-by-step user interactions"
             }
         }
     
@@ -140,7 +167,8 @@ class DiagramFactory:
         Generate a diagram directly through the factory.
         
         Args:
-            view_type: Type of architectural view ('logical', 'process', 'development')
+            view_type: Type of architectural view ('logical', 'process', 'development',
+                                                 'physical', 'scenarios')
             diagram_type: Type of diagram within the view
             target: Target file(s) or directory for analysis
             **kwargs: Additional arguments for the specific diagram type

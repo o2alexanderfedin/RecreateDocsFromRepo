@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.19.0] - 2025-04-26
+
+### Added
+- Physical and Scenarios View Diagrams Generator:
+  - UML deployment diagrams showing hardware nodes and deployed artifacts
+  - Infrastructure diagrams showing cloud resources and connections
+  - Use case diagrams showing actors and system functionality
+  - User flow diagrams showing step-by-step user interactions
+  - AI-assisted extraction of deployment configurations
+  - Identification of cloud infrastructure resources
+  - Detection of actors and use cases from documentation and code
+  - Analysis of user interactions from UI files and tests
+  - Support for cloud-specific resources (AWS, Azure, GCP)
+  - Automatic relationships inference between components
+  - Mermaid syntax for all diagram types
+  - Proper diagram styling and labeling for clarity
+  - Caching system for improved performance
+  - Repository-wide diagram generation capabilities
+  - Complete implementation of UML 4+1 architectural view model
+
 ## [0.18.0] - 2025-04-26
 
 ### Added
