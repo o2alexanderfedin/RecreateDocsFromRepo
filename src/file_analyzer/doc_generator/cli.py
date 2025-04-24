@@ -24,6 +24,10 @@ from file_analyzer.doc_generator.documentation_structure_manager import (
     DocumentationStructureManager,
     DocumentationStructureConfig
 )
+from file_analyzer.doc_generator.documentation_navigation_manager import (
+    DocumentationNavigationManager,
+    NavigationConfig
+)
 
 logger = logging.getLogger("file_analyzer.doc_generator.cli")
 
@@ -133,6 +137,36 @@ def parse_args():
         "--no-architecture-view",
         action="store_true",
         help="Disable architecture view in documentation structure"
+    )
+    
+    parser.add_argument(
+        "--no-navigation",
+        action="store_true",
+        help="Disable enhanced navigation elements"
+    )
+    
+    parser.add_argument(
+        "--no-breadcrumbs",
+        action="store_true",
+        help="Disable breadcrumb navigation"
+    )
+    
+    parser.add_argument(
+        "--no-toc",
+        action="store_true",
+        help="Disable table of contents"
+    )
+    
+    parser.add_argument(
+        "--no-section-nav",
+        action="store_true",
+        help="Disable section navigation"
+    )
+    
+    parser.add_argument(
+        "--no-cross-references",
+        action="store_true",
+        help="Disable cross-references"
     )
     
     parser.add_argument(
@@ -303,6 +337,49 @@ def main():
             stats["structure_index_files"] = len(structure_results.get("index_files", []))
             stats["index_files"] += stats["structure_index_files"]
             logger.info(f"Structure index files created: {stats['structure_index_files']}")
+    
+    # Apply documentation navigation if enabled
+    if not args.no_navigation:
+        logger.info("Applying documentation navigation elements")
+        
+        # Create navigation configuration
+        navigation_config = NavigationConfig(
+            output_dir=args.output_dir,
+            template_dir=args.template_dir,
+            include_breadcrumbs=not args.no_breadcrumbs,
+            include_toc=not args.no_toc,
+            include_section_nav=not args.no_section_nav,
+            include_cross_references=not args.no_cross_references
+        )
+        
+        # Create navigation manager
+        navigation_manager = DocumentationNavigationManager(navigation_config)
+        
+        # Find all generated documentation files
+        document_files = []
+        for root, dirs, files in os.walk(args.output_dir):
+            for file in files:
+                if file.endswith(".md"):
+                    file_path = os.path.join(root, file)
+                    rel_path = os.path.relpath(file_path, args.output_dir).replace("\\", "/")
+                    document_files.append({
+                        "file_path": file_path,
+                        "metadata": {
+                            "path": rel_path,
+                            "title": os.path.basename(file)
+                        }
+                    })
+        
+        # Build document structure
+        doc_structure = navigation_manager.build_doc_structure([f["file_path"] for f in document_files])
+        
+        # Process navigation elements
+        nav_results = navigation_manager.process_documentation_structure(document_files, doc_structure)
+        
+        # Update stats
+        stats["navigation_processed"] = nav_results["processed_files"]
+        stats["navigation_skipped"] = nav_results["skipped_files"]
+        logger.info(f"Navigation elements added to {nav_results['processed_files']} files")
     
     logger.info(f"Documentation generation complete")
     logger.info(f"Files processed: {stats['total_files']}")

@@ -1,0 +1,9 @@
+{# Section navigation template #}
+<div class="section-nav">
+{% if prev_section %}
+[&laquo; {{ prev_section.title }}]({{ prev_section.anchor }})
+{% endif %}
+{% if next_section %}
+{% if prev_section %} | {% endif %}[{{ next_section.title }} &raquo;]({{ next_section.anchor }})
+{% endif %}
+</div>
