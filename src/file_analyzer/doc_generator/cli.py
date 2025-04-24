@@ -2,14 +2,16 @@
 CLI for documentation generation.
 
 This module provides a command-line interface for generating per-file
-documentation from repository analysis results.
+documentation from repository analysis results, as well as UML diagrams
+for different architectural views.
 """
 import argparse
 import json
 import logging
 import os
 import sys
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List, Union
+from pathlib import Path
 
 from file_analyzer.repo_scanner import RepositoryScanner
 from file_analyzer.core.file_type_analyzer import FileTypeAnalyzer
@@ -28,6 +30,7 @@ from file_analyzer.doc_generator.documentation_navigation_manager import (
     DocumentationNavigationManager,
     NavigationConfig
 )
+from file_analyzer.doc_generator.diagram_factory import DiagramFactory
 
 logger = logging.getLogger("file_analyzer.doc_generator.cli")
 
@@ -108,6 +111,7 @@ def parse_args():
         help="Disable AI-generated documentation"
     )
     
+    # Documentation Structure Options
     parser.add_argument(
         "--no-structure-manager",
         action="store_true",
@@ -139,6 +143,7 @@ def parse_args():
         help="Disable architecture view in documentation structure"
     )
     
+    # Navigation Options
     parser.add_argument(
         "--no-navigation",
         action="store_true",
@@ -169,6 +174,105 @@ def parse_args():
         help="Disable cross-references"
     )
     
+    # UML Diagram Generation Options
+    parser.add_argument(
+        "--generate-diagrams",
+        action="store_true",
+        help="Enable UML diagram generation"
+    )
+    
+    parser.add_argument(
+        "--diagram-views",
+        default="logical,process,development",
+        help="Comma-separated list of architectural views to generate diagrams for"
+    )
+    
+    parser.add_argument(
+        "--diagram-types",
+        default="class,sequence,package",
+        help="Comma-separated list of diagram types to generate"
+    )
+    
+    parser.add_argument(
+        "--diagram-output-dir",
+        help="Directory where diagrams will be generated (default: output-dir/diagrams)"
+    )
+    
+    parser.add_argument(
+        "--diagram-title-prefix",
+        help="Optional prefix for diagram titles"
+    )
+    
+    parser.add_argument(
+        "--diagram-entry-point",
+        help="Entry point for sequence diagrams (e.g., module.Class.method)"
+    )
+    
+    parser.add_argument(
+        "--diagram-max-depth",
+        type=int,
+        default=3,
+        help="Maximum depth for hierarchical diagrams"
+    )
+    
+    parser.add_argument(
+        "--diagram-file-patterns",
+        help="Comma-separated list of file patterns to include in diagrams"
+    )
+    
+    # Final Assembly Options
+    parser.add_argument(
+        "--final-assembly",
+        action="store_true",
+        help="Enable final documentation assembly"
+    )
+    
+    parser.add_argument(
+        "--assembly-output-dir",
+        help="Directory for final assembled documentation (default: output-dir/assembled)"
+    )
+    
+    parser.add_argument(
+        "--assembly-input-dirs",
+        help="Additional input directories for assembly (comma-separated)"
+    )
+    
+    parser.add_argument(
+        "--assembly-template-dir",
+        help="Custom template directory for assembly"
+    )
+    
+    parser.add_argument(
+        "--no-self-contained",
+        action="store_true",
+        help="Disable self-contained documentation package"
+    )
+    
+    parser.add_argument(
+        "--no-validate",
+        action="store_true",
+        help="Disable documentation validation"
+    )
+    
+    parser.add_argument(
+        "--no-optimize",
+        action="store_true",
+        help="Disable documentation optimization"
+    )
+    
+    parser.add_argument(
+        "--no-readme",
+        action="store_true",
+        help="Disable README generation"
+    )
+    
+    parser.add_argument(
+        "--assembly-format",
+        choices=["markdown", "html", "pdf"],
+        help="Format for final documentation assembly (default: markdown)"
+    )
+    
+    # Cache and Analysis Options
     parser.add_argument(
         "--cache-dir",
         help="Directory for caching analysis results"
@@ -237,6 +341,13 @@ def main():
     # Create AI provider (used for both analysis and documentation)
     ai_provider = create_ai_provider(args.provider, args.api_key, args.model)
     
+    # Create cache provider
+    cache_provider = None
+    if args.cache_dir:
+        cache_provider = FileSystemCache(args.cache_dir)
+    else:
+        cache_provider = InMemoryCache()
+    
     # If analysis results are provided, load them
     if args.analysis_file:
         logger.info(f"Loading analysis results from {args.analysis_file}")
@@ -245,13 +356,6 @@ def main():
     # Otherwise, perform repository analysis
     else:
         logger.info(f"Analyzing repository: {args.repo_path}")
-        
-        # Create cache provider
-        cache_provider = None
-        if args.cache_dir:
-            cache_provider = FileSystemCache(args.cache_dir)
-        else:
-            cache_provider = InMemoryCache()
         
         # Create analyzers
         file_type_analyzer = FileTypeAnalyzer(
@@ -381,13 +485,212 @@ def main():
         stats["navigation_skipped"] = nav_results["skipped_files"]
         logger.info(f"Navigation elements added to {nav_results['processed_files']} files")
     
+    # Generate UML diagrams if enabled
+    if args.generate_diagrams:
+        logger.info("Generating UML diagrams")
+        
+        # Import diagram related modules
+        from file_analyzer.doc_generator.diagram_factory import DiagramFactory
+        
+        # Set the diagram output directory
+        diagram_output_dir = args.diagram_output_dir
+        if not diagram_output_dir:
+            diagram_output_dir = os.path.join(args.output_dir, "diagrams")
+        
+        # Make sure the output directory exists
+        os.makedirs(diagram_output_dir, exist_ok=True)
+        
+        # Create diagram factory
+        diagram_factory = DiagramFactory(
+            ai_provider=ai_provider,
+            code_analyzer=code_analyzer if 'code_analyzer' in locals() else None,
+            file_reader=None,  # Will be created by factory if needed
+            file_hasher=None,  # Will be created by factory if needed
+            cache_provider=cache_provider
+        )
+        
+        # Parse view and diagram types
+        view_types = args.diagram_views.split(',')
+        diagram_types = args.diagram_types.split(',')
+        
+        # Track diagram statistics
+        diagram_stats = {
+            "diagrams_generated": 0,
+            "errors": 0
+        }
+        
+        # Get file paths from repository analysis
+        file_results = repo_analysis.get("file_results", {})
+        file_paths = [file_path for file_path, _ in file_results.items()]
+        
+        # Filter by file patterns if specified
+        if args.diagram_file_patterns:
+            import fnmatch
+            patterns = args.diagram_file_patterns.split(',')
+            filtered_paths = []
+            for path in file_paths:
+                if any(fnmatch.fnmatch(path, pattern) for pattern in patterns):
+                    filtered_paths.append(path)
+            file_paths = filtered_paths
+        
+        # Generate diagrams for each view type and diagram type
+        for view_type in view_types:
+            # Skip if view type is not supported
+            if view_type not in diagram_factory.get_supported_views():
+                logger.warning(f"Skipping unsupported view type: {view_type}")
+                continue
+            
+            # Get supported diagram types for this view
+            supported_diagrams = diagram_factory.get_supported_views()[view_type]
+            
+            # Create generator for this view
+            try:
+                generator = diagram_factory.create_generator(view_type)
+            except Exception as e:
+                logger.error(f"Error creating generator for view {view_type}: {str(e)}")
+                diagram_stats["errors"] += 1
+                continue
+            
+            # Process each requested diagram type
+            for diagram_type in diagram_types:
+                if diagram_type not in supported_diagrams:
+                    logger.warning(f"Skipping unsupported diagram type '{diagram_type}' for view '{view_type}'")
+                    continue
+                
+                logger.info(f"Generating {view_type} {diagram_type} diagram")
+                
+                # Prepare diagram title
+                title_prefix = args.diagram_title_prefix or ""
+                title = f"{title_prefix} {view_type.capitalize()} {diagram_type.capitalize()} Diagram"
+                title = title.strip()
+                
+                # Set up specific diagram parameters
+                diagram_params = {
+                    "title": title
+                }
+                
+                # Add view-specific parameters
+                if view_type == "process" and diagram_type == "sequence":
+                    diagram_params["max_depth"] = args.diagram_max_depth
+                    if args.diagram_entry_point:
+                        diagram_params["entry_point"] = args.diagram_entry_point
+                
+                elif view_type == "development":
+                    diagram_params["max_depth"] = args.diagram_max_depth
+                
+                # Different handling based on view type
+                try:
+                    if view_type in ["logical", "process"]:
+                        # These views work with file paths
+                        result = generator.generate_diagram(file_paths, diagram_type, **diagram_params)
+                    elif view_type in ["development", "physical"]:
+                        # These views work with the repository root
+                        repo_path = repo_analysis.get("repo_path", "")
+                        result = generator.generate_diagram(repo_path, diagram_type, **diagram_params)
+                    else:
+                        # Generic case, try with file paths first
+                        result = generator.generate_diagram(file_paths, diagram_type, **diagram_params)
+                    
+                    # Save diagram to file
+                    diagram_filename = f"{view_type}_{diagram_type}_diagram.md"
+                    diagram_path = os.path.join(diagram_output_dir, diagram_filename)
+                    
+                    with open(diagram_path, "w") as f:
+                        f.write(f"# {result['title']}\n\n")
+                        f.write("```mermaid\n")
+                        f.write(result["content"])
+                        f.write("\n```\n\n")
+                        
+                        # Add metadata if available
+                        if "metadata" in result:
+                            f.write("## Diagram Metadata\n\n")
+                            for key, value in result["metadata"].items():
+                                f.write(f"- **{key}**: {value}\n")
+                    
+                    logger.info(f"Generated diagram: {diagram_path}")
+                    diagram_stats["diagrams_generated"] += 1
+                    
+                except Exception as e:
+                    logger.error(f"Error generating {view_type} {diagram_type} diagram: {str(e)}")
+                    diagram_stats["errors"] += 1
+        
+        # Update stats
+        stats["diagrams_generated"] = diagram_stats["diagrams_generated"]
+        stats["diagram_errors"] = diagram_stats["errors"]
+        logger.info(f"Generated {stats['diagrams_generated']} diagrams with {stats['diagram_errors']} errors")
+    
+    # Apply final assembly if enabled
+    assembly_output_dir = None
+    if args.final_assembly:
+        logger.info("Performing final documentation assembly")
+        
+        from file_analyzer.doc_generator.documentation_assembler import DocumentationAssembler, AssemblyConfig
+        
+        # Create input dirs list
+        input_dirs = [args.output_dir]
+        if args.assembly_input_dirs:
+            input_dirs.extend(args.assembly_input_dirs.split(','))
+        
+        # Create assembly output dir
+        assembly_output_dir = args.assembly_output_dir
+        if not assembly_output_dir:
+            assembly_output_dir = os.path.join(args.output_dir, "assembled")
+        
+        # Create assembly config
+        assembly_config = AssemblyConfig(
+            output_dir=assembly_output_dir,
+            input_dirs=input_dirs,
+            template_dir=args.assembly_template_dir or args.template_dir,
+            self_contained=not args.no_self_contained,
+            validate_output=not args.no_validate,
+            optimize_output=not args.no_optimize,
+            include_readme=not args.no_readme,
+            output_format=args.assembly_format or "markdown"
+        )
+        
+        # Create and run assembler
+        assembler = DocumentationAssembler(assembly_config)
+        assembly_stats = assembler.assemble_documentation()
+        
+        # Generate README with project info
+        project_name = os.path.basename(os.path.abspath(args.repo_path))
+        repo_url = ""  # Would need Git integration to detect remote URL
+        assembler.generate_readme(project_name=project_name, repo_url=repo_url)
+        
+        # Update stats
+        stats["assembly_files_processed"] = assembly_stats.get("files_processed", 0)
+        stats["assembly_errors"] = len(assembly_stats.get("errors", []))
+        
+        if "validation_result" in assembly_stats:
+            validation = assembly_stats["validation_result"]
+            stats["validation_issues"] = (
+                validation.get("broken_links", 0) + 
+                validation.get("missing_sections", 0) +
+                validation.get("formatting_issues", 0)
+            )
+        
+        if "optimization_result" in assembly_stats:
+            stats["files_optimized"] = assembly_stats["optimization_result"].get("files_optimized", 0)
+            stats["size_reduction"] = assembly_stats["optimization_result"].get("size_reduction", 0)
+        
+        logger.info(f"Assembly complete with {stats['assembly_files_processed']} files processed")
+        logger.info(f"Final documentation is available at: {os.path.abspath(assembly_output_dir)}")
+    
     logger.info(f"Documentation generation complete")
     logger.info(f"Files processed: {stats['total_files']}")
     logger.info(f"Documentation files generated: {stats['documentation_files_generated']}")
     logger.info(f"Files skipped: {stats['skipped_files']}")
     logger.info(f"Index files created: {stats['index_files']}")
     
-    logger.info(f"Documentation is available at: {os.path.abspath(args.output_dir)}")
+    # Report diagram stats if diagrams were generated
+    if args.generate_diagrams:
+        logger.info(f"Diagrams generated: {stats.get('diagrams_generated', 0)}")
+        if stats.get('diagram_errors', 0) > 0:
+            logger.warning(f"Diagram errors: {stats.get('diagram_errors', 0)}")
+    
+    # Determine the final documentation location
+    docs_location = os.path.abspath(assembly_output_dir) if args.final_assembly and assembly_output_dir else os.path.abspath(args.output_dir)
+    logger.info(f"Documentation is available at: {docs_location}")
 
 if __name__ == "__main__":
     main()
