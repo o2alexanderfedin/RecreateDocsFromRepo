@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.21.0] - 2025-04-28
+
+### Added
+- Documentation Structure Manager:
+  - Hierarchical documentation structure with appropriate depth control
+  - Logical grouping of files by module, package, and functionality
+  - Multiple organizational views: module, component, and architecture
+  - Adaptive depth based on codebase size
+  - Structure-aware navigation with comprehensive index files
+  - Custom templates for different organizational views
+  - Integration with existing documentation generation pipeline
+  - CLI support for all structure management features
+  - Complete test coverage with TDD approach
+  - SOLID design principles implementation
+
 ## [0.20.0] - 2025-04-27
 
 ### Added
