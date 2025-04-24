@@ -20,6 +20,10 @@ from file_analyzer.ai_providers.mistral_provider import MistralProvider
 from file_analyzer.ai_providers.openai_provider import OpenAIProvider
 from file_analyzer.core.cache_provider import InMemoryCache, FileSystemCache
 from file_analyzer.doc_generator.markdown_generator import generate_documentation
+from file_analyzer.doc_generator.documentation_structure_manager import (
+    DocumentationStructureManager,
+    DocumentationStructureConfig
+)
 
 logger = logging.getLogger("file_analyzer.doc_generator.cli")
 
@@ -98,6 +102,37 @@ def parse_args():
         "--no-ai-documentation",
         action="store_true",
         help="Disable AI-generated documentation"
+    )
+    
+    parser.add_argument(
+        "--no-structure-manager",
+        action="store_true",
+        help="Disable enhanced documentation structure manager"
+    )
+    
+    parser.add_argument(
+        "--max-depth",
+        type=int,
+        default=3,
+        help="Maximum depth for hierarchical structure"
+    )
+    
+    parser.add_argument(
+        "--no-adapt-depth",
+        action="store_true",
+        help="Don't adapt depth based on repository size"
+    )
+    
+    parser.add_argument(
+        "--no-component-view",
+        action="store_true",
+        help="Disable component view in documentation structure"
+    )
+    
+    parser.add_argument(
+        "--no-architecture-view",
+        action="store_true",
+        help="Disable architecture view in documentation structure"
     )
     
     parser.add_argument(
@@ -224,6 +259,7 @@ def main():
         logger.warning("Code snippets have been replaced with direct links to source files. "
                        "The --no-code-snippets and --max-code-lines arguments are deprecated.")
     
+    # Generate per-file documentation
     stats = generate_documentation(
         repo_analysis=repo_analysis,
         output_dir=args.output_dir,
@@ -236,6 +272,37 @@ def main():
         ai_provider=ai_provider,  # Pass the AI provider to documentation generator
         exclude_patterns=args.exclude
     )
+    
+    # Apply documentation structure manager if enabled
+    if not args.no_structure_manager:
+        logger.info("Applying documentation structure manager")
+        
+        # Create structure manager configuration
+        structure_config = DocumentationStructureConfig(
+            output_dir=args.output_dir,
+            template_dir=args.template_dir,
+            max_depth=args.max_depth,
+            adapt_depth_to_size=not args.no_adapt_depth,
+            include_component_view=not args.no_component_view,
+            include_architecture_view=not args.no_architecture_view,
+            exclude_patterns=args.exclude
+        )
+        
+        # Create structure manager
+        structure_manager = DocumentationStructureManager(structure_config)
+        
+        # Organize documentation structure
+        structure_results = structure_manager.organize_documentation_structure(
+            repo_path=repo_analysis.get("repo_path", ""),
+            file_results=repo_analysis.get("file_results", {}),
+            frameworks=repo_analysis.get("frameworks", [])
+        )
+        
+        # Update stats
+        if "index_files" in structure_results:
+            stats["structure_index_files"] = len(structure_results.get("index_files", []))
+            stats["index_files"] += stats["structure_index_files"]
+            logger.info(f"Structure index files created: {stats['structure_index_files']}")
     
     logger.info(f"Documentation generation complete")
     logger.info(f"Files processed: {stats['total_files']}")
