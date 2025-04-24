@@ -1,0 +1,23 @@
+{# Navigation footer template #}
+
+---
+
+## Navigation
+
+- [Home]({{ home_link }})
+{% if parent_link %}
+- [Up to {{ parent_title }}]({{ parent_link }})
+{% endif %}
+{% if dir_index_link %}
+- [Directory: {{ dir_index_title }}]({{ dir_index_link }})
+{% endif %}
+
+{% if cross_references %}
+## Related Files
+
+{% for ref in cross_references %}
+- [{{ ref.title }}]({{ ref.link }})
+{% endfor %}
+{% endif %}
+
+*Documentation generated automatically by File Analyzer*
