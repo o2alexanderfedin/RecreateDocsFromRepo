@@ -27,3 +27,15 @@ class FileHasher:
         except Exception:
             # Fallback to path-based hash if file can't be read
             return hashlib.md5(str(path).encode()).hexdigest()
+    
+    def get_string_hash(self, content: str) -> str:
+        """
+        Generate a hash for a string.
+        
+        Args:
+            content: String content to hash
+            
+        Returns:
+            MD5 hash of the string content
+        """
+        return hashlib.md5(content.encode()).hexdigest()
