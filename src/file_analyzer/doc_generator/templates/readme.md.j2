@@ -1,0 +1,37 @@
+# {{ project_name }} Documentation
+
+This documentation was automatically generated for {{ project_name }}.
+
+{% if repo_url %}
+Repository: [{{ repo_url }}]({{ repo_url }})
+{% endif %}
+
+## Documentation Structure
+
+{% if sections %}
+This documentation is organized into the following sections:
+
+{% for section in sections %}
+### {{ section.title }}
+
+{{ section.description }}
+
+[View {{ section.title }}]({{ section.path }})
+
+{% endfor %}
+{% else %}
+Documentation sections will be added as they become available.
+{% endif %}
+
+## Navigation
+
+- [Home](index.md)
+{% if 'architecture' in sections|map(attribute='name') %}
+- [Architecture](architecture/index.md)
+{% endif %}
+{% if 'components' in sections|map(attribute='name') %}
+- [Components](components/index.md)
+{% endif %}
+{% if 'files' in sections|map(attribute='name') %}
+- [Files](files/index.md)
+{% endif %}

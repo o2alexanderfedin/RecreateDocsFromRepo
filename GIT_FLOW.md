@@ -9,7 +9,7 @@ This repository follows the Git Flow workflow with an additional `release/curren
 - `feature/*` - Feature branches
 - `release/*` - Release preparation branches (always delete versioned release branches after finalization)
 - `hotfix/*` - Hotfix branches for production issues
-- `release/current` - Always points to the latest stable release (currently v0.10.0)
+- `release/current` - Always points to the latest stable release (currently v0.23.0)
 
 ## Workflow
 
@@ -56,11 +56,14 @@ git push origin main
 git push origin --tags
 
 # Update release/current branch to point to the latest release
-./git-flow-update-current
+# Replace x.y.z with your actual version number
+git checkout release/current
+git reset --hard release/x.y.z
+git push -f origin release/current
 
 # Delete the versioned release branch locally after finalizing
-# Replace 0.10.0 with your actual version number
-git branch -d release/0.10.0
+# Replace x.y.z with your actual version number
+git branch -d release/x.y.z
 ```
 
 ### Hotfix Process
@@ -82,11 +85,14 @@ git push origin main
 git push origin --tags
 
 # Update release/current branch to point to the latest release
-./git-flow-update-current
+# Replace x.y.z with your actual version number
+git checkout release/current
+git reset --hard release/x.y.z
+git push -f origin release/current
 
 # Delete the versioned release branch locally after finalizing
-# Replace 0.10.0 with your actual version number
-git branch -d release/0.10.0
+# Replace x.y.z with your actual version number
+git branch -d release/x.y.z
 ```
 
 ## Using release/current
@@ -97,7 +103,7 @@ The `release/current` branch always points to the latest stable release and is u
 2. Users who want the latest stable code without knowing version numbers
 3. Providing a consistent reference point for the current production version
 
-This branch is automatically updated when running the `git-flow-update-current` script after completing a release or hotfix.
+This branch is manually updated to match the latest release version as shown in the examples above.
 
 ## Setting Up
 
