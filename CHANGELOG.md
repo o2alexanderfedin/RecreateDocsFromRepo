@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.20.0] - 2025-04-27
+
+### Added
+- Complete UML 4+1 Architectural View Model implementation:
+  - Full implementation of all five architectural views (Logical, Process, Development, Physical, Scenarios)
+  - Comprehensive documentation generation for all diagram types
+  - Unified Mermaid syntax for consistent diagram styling
+  - Factory pattern for easy generator creation and extension
+  - Shared caching and performance optimizations across all generators
+  - Consistent API for diagram generation
+  - Complete test coverage for all view generators
+  - Repository-wide documentation workflow
+  - AI-assisted diagram generation from source code and configuration files
+
 ## [0.19.0] - 2025-04-27
 
 ### Added
