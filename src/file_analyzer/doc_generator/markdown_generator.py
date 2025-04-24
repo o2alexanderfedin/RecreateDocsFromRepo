@@ -16,6 +16,9 @@ from file_analyzer.doc_generator.ai_documentation_generator import (
     generate_file_documentation,
     AiDocumentationGenerator
 )
+from file_analyzer.doc_generator.config_documentation_generator import (
+    generate_config_file_documentation
+)
 from file_analyzer.doc_generator.markdown_formatter import (
     format_documentation,
     sanitize_markdown,
@@ -37,6 +40,7 @@ class DocumentationConfig:
         include_framework_details: bool = True,
         include_ai_documentation: bool = True,
         ai_provider: Optional[Any] = None,
+        config_relationship_mapper: Optional[Any] = None,
         exclude_patterns: Optional[List[str]] = None
     ):
         """
@@ -51,6 +55,7 @@ class DocumentationConfig:
             include_framework_details: Whether to include framework details
             include_ai_documentation: Whether to include AI-generated documentation
             ai_provider: AI provider to use for documentation generation
+            config_relationship_mapper: Mapper for config-code relationships
             exclude_patterns: Patterns of files to exclude from documentation
         """
         self.output_dir = output_dir
@@ -61,6 +66,7 @@ class DocumentationConfig:
         self.include_framework_details = include_framework_details
         self.include_ai_documentation = include_ai_documentation
         self.ai_provider = ai_provider
+        self.config_relationship_mapper = config_relationship_mapper
         self.exclude_patterns = exclude_patterns or []
 
 
@@ -178,6 +184,7 @@ class MarkdownGenerator:
             file_result: Analysis results for the file
             repo_path: Root path of the repository
             frameworks: List of frameworks used in the repository
+            file_results: Analysis results for all files (optional)
             
         Returns:
             Path to the generated documentation file
@@ -228,8 +235,17 @@ class MarkdownGenerator:
                 file_results = {file_path: file_result}
             relationships = self._get_file_relationships(file_path, repo_path, file_results)
         
+        # Check if this is a config file
+        is_config_file = (
+            file_type.lower() == "config" or 
+            language.lower() in ["json", "yaml", "toml", "ini"] or
+            any(ext in file_path.lower() for ext in [".json", ".yaml", ".yml", ".toml", ".ini", ".conf", ".config"])
+        )
+        
         # Generate AI documentation if enabled
         ai_documentation = None
+        config_documentation = None
+        
         if self.config.include_ai_documentation:
             try:
                 # Read file content
@@ -237,27 +253,47 @@ class MarkdownGenerator:
                 try:
                     file_content = file_reader.read_file(file_path)
                     
-                    # Generate AI documentation
-                    raw_ai_documentation = generate_file_documentation(
-                        file_path=file_path,
-                        content=file_content,
-                        metadata=file_result,
-                        ai_provider=self.config.ai_provider
-                    )
-                    
-                    # Format the AI documentation with proper Markdown
-                    ai_documentation = raw_ai_documentation
-                    if raw_ai_documentation:
+                    # Check if this is a config file and we have a config relationship mapper
+                    if is_config_file and self.config.config_relationship_mapper:
                         try:
-                            # Apply markdown formatting to the raw AI documentation
-                            ai_documentation = format_documentation(file_path, raw_ai_documentation)
-                            logger.debug(f"Formatted AI documentation for {file_path}")
+                            # Generate config-specific documentation
+                            config_documentation = generate_config_file_documentation(
+                                config_file_path=file_path,
+                                relationship_mapper=self.config.config_relationship_mapper,
+                                ai_provider=self.config.ai_provider
+                            )
+                            logger.debug(f"Generated config documentation for {file_path}")
+                            
+                            # Use the AI documentation from config documentation generator
+                            ai_documentation = config_documentation.get("ai_documentation", {})
                         except Exception as e:
-                            logger.warning(f"Error formatting AI documentation: {str(e)}")
-                            # Fall back to raw documentation if formatting fails
-                            ai_documentation = raw_ai_documentation
+                            logger.warning(f"Error generating config documentation: {str(e)}")
+                            # Fall back to standard AI documentation if config-specific fails
+                            config_documentation = None
                     
-                    logger.debug(f"Generated AI documentation for {file_path}")
+                    # If not a config file or config doc generation failed, use standard AI documentation
+                    if not config_documentation:
+                        # Generate standard AI documentation
+                        raw_ai_documentation = generate_file_documentation(
+                            file_path=file_path,
+                            content=file_content,
+                            metadata=file_result,
+                            ai_provider=self.config.ai_provider
+                        )
+                        
+                        # Format the AI documentation with proper Markdown
+                        ai_documentation = raw_ai_documentation
+                        if raw_ai_documentation:
+                            try:
+                                # Apply markdown formatting to the raw AI documentation
+                                ai_documentation = format_documentation(file_path, raw_ai_documentation)
+                                logger.debug(f"Formatted AI documentation for {file_path}")
+                            except Exception as e:
+                                logger.warning(f"Error formatting AI documentation: {str(e)}")
+                                # Fall back to raw documentation if formatting fails
+                                ai_documentation = raw_ai_documentation
+                        
+                        logger.debug(f"Generated AI documentation for {file_path}")
                 except Exception as e:
                     logger.warning(f"Could not read file content for AI documentation: {file_path}: {str(e)}")
             except Exception as e:
@@ -280,6 +316,17 @@ class MarkdownGenerator:
             "graph_data": relationships.get("graph_data") if relationships else None,
             "ai_documentation": ai_documentation
         }
+        
+        # Add config-specific variables if available
+        if config_documentation:
+            # Add config-specific variables to the context
+            context.update({
+                "variables": config_documentation.get("variables", []),
+                "environment_vars": config_documentation.get("environment_vars", []),
+                "env_var_descriptions": config_documentation.get("env_var_descriptions", {}),
+                "param_usage": config_documentation.get("param_usage", {}),
+                "is_config_file": True
+            })
         
         # Determine which template to use based on language or file type
         template_name = self._get_template_for_file(language, file_type)
@@ -1038,6 +1085,7 @@ def generate_documentation(
     include_framework_details: bool = True,
     include_ai_documentation: bool = True,
     ai_provider: Optional[Any] = None,
+    config_relationship_mapper: Optional[Any] = None,
     exclude_patterns: Optional[List[str]] = None
 ) -> Dict[str, Any]:
     """
@@ -1056,6 +1104,7 @@ def generate_documentation(
         include_framework_details: Whether to include framework details
         include_ai_documentation: Whether to include AI-generated documentation
         ai_provider: AI provider to use for documentation generation
+        config_relationship_mapper: Mapper for config-code relationships (optional)
         exclude_patterns: Patterns of files to exclude from documentation
         
     Returns:
@@ -1070,6 +1119,7 @@ def generate_documentation(
         include_framework_details=include_framework_details,
         include_ai_documentation=include_ai_documentation,
         ai_provider=ai_provider,
+        config_relationship_mapper=config_relationship_mapper,
         exclude_patterns=exclude_patterns or []
     )
     
