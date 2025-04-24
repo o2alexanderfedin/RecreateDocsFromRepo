@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.19.0] - 2025-04-27
+
+### Added
+- Process and Development View Diagram Generators:
+  - Complete UML 4+1 architectural view model diagram coverage
+  - Sequence diagrams showing object interactions over time
+  - Activity diagrams visualizing control flow and algorithm steps
+  - Package diagrams showing code organization and dependencies
+  - Component diagrams with interface relationships and dependencies
+  - Diagram Factory pattern for easy generator creation
+  - AI-assisted code flow analysis for activity diagrams
+  - Method call tracing for accurate sequence diagrams
+  - Directory structure analysis for package organization
+  - Component interface detection and dependency tracking
+  - Mermaid syntax generation for all diagram types
+  - Consistent caching across all generator types
+  - Comprehensive statistics tracking for generated diagrams
+
 ## [0.18.0] - 2025-04-26
 
 ### Added
