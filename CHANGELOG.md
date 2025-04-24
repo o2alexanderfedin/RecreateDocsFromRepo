@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.16.0] - 2025-04-25
+
+### Added
+- Config Documentation Generator system:
+  - Enhanced documentation for configuration files
+  - Rich parameter details with type information and descriptions
+  - Environment variable documentation and usage tracking
+  - Configuration relationship visualization with code files
+  - Parameter-level usage documentation showing where config values are used
+  - AI-assisted parameter descriptions and usage examples
+  - Integration with Config Relationship Mapper for comprehensive insights
+  - Enhanced config_file.md.j2 template with detailed parameter tables
+  - Special treatment for framework-specific configuration files
+
 ## [0.15.0] - 2025-04-24
 
 ### Added
