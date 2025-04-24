@@ -108,6 +108,7 @@ def parse_args():
         help="Disable AI-generated documentation"
     )
     
+    # Documentation Structure Options
     parser.add_argument(
         "--no-structure-manager",
         action="store_true",
@@ -139,6 +140,7 @@ def parse_args():
         help="Disable architecture view in documentation structure"
     )
     
+    # Navigation Options
     parser.add_argument(
         "--no-navigation",
         action="store_true",
@@ -169,6 +171,59 @@ def parse_args():
         help="Disable cross-references"
     )
     
+    # Final Assembly Options
+    parser.add_argument(
+        "--final-assembly",
+        action="store_true",
+        help="Enable final documentation assembly"
+    )
+    
+    parser.add_argument(
+        "--assembly-output-dir",
+        help="Directory for final assembled documentation (default: output-dir/assembled)"
+    )
+    
+    parser.add_argument(
+        "--assembly-input-dirs",
+        help="Additional input directories for assembly (comma-separated)"
+    )
+    
+    parser.add_argument(
+        "--assembly-template-dir",
+        help="Custom template directory for assembly"
+    )
+    
+    parser.add_argument(
+        "--no-self-contained",
+        action="store_true",
+        help="Disable self-contained documentation package"
+    )
+    
+    parser.add_argument(
+        "--no-validate",
+        action="store_true",
+        help="Disable documentation validation"
+    )
+    
+    parser.add_argument(
+        "--no-optimize",
+        action="store_true",
+        help="Disable documentation optimization"
+    )
+    
+    parser.add_argument(
+        "--no-readme",
+        action="store_true",
+        help="Disable README generation"
+    )
+    
+    parser.add_argument(
+        "--assembly-format",
+        choices=["markdown", "html", "pdf"],
+        help="Format for final documentation assembly (default: markdown)"
+    )
+    
+    # Cache and Analysis Options
     parser.add_argument(
         "--cache-dir",
         help="Directory for caching analysis results"
@@ -381,13 +436,72 @@ def main():
         stats["navigation_skipped"] = nav_results["skipped_files"]
         logger.info(f"Navigation elements added to {nav_results['processed_files']} files")
     
+    # Apply final assembly if enabled
+    assembly_output_dir = None
+    if args.final_assembly:
+        logger.info("Performing final documentation assembly")
+        
+        from file_analyzer.doc_generator.documentation_assembler import DocumentationAssembler, AssemblyConfig
+        
+        # Create input dirs list
+        input_dirs = [args.output_dir]
+        if args.assembly_input_dirs:
+            input_dirs.extend(args.assembly_input_dirs.split(','))
+        
+        # Create assembly output dir
+        assembly_output_dir = args.assembly_output_dir
+        if not assembly_output_dir:
+            assembly_output_dir = os.path.join(args.output_dir, "assembled")
+        
+        # Create assembly config
+        assembly_config = AssemblyConfig(
+            output_dir=assembly_output_dir,
+            input_dirs=input_dirs,
+            template_dir=args.assembly_template_dir or args.template_dir,
+            self_contained=not args.no_self_contained,
+            validate_output=not args.no_validate,
+            optimize_output=not args.no_optimize,
+            include_readme=not args.no_readme,
+            output_format=args.assembly_format or "markdown"
+        )
+        
+        # Create and run assembler
+        assembler = DocumentationAssembler(assembly_config)
+        assembly_stats = assembler.assemble_documentation()
+        
+        # Generate README with project info
+        project_name = os.path.basename(os.path.abspath(args.repo_path))
+        repo_url = ""  # Would need Git integration to detect remote URL
+        assembler.generate_readme(project_name=project_name, repo_url=repo_url)
+        
+        # Update stats
+        stats["assembly_files_processed"] = assembly_stats.get("files_processed", 0)
+        stats["assembly_errors"] = len(assembly_stats.get("errors", []))
+        
+        if "validation_result" in assembly_stats:
+            validation = assembly_stats["validation_result"]
+            stats["validation_issues"] = (
+                validation.get("broken_links", 0) + 
+                validation.get("missing_sections", 0) +
+                validation.get("formatting_issues", 0)
+            )
+        
+        if "optimization_result" in assembly_stats:
+            stats["files_optimized"] = assembly_stats["optimization_result"].get("files_optimized", 0)
+            stats["size_reduction"] = assembly_stats["optimization_result"].get("size_reduction", 0)
+        
+        logger.info(f"Assembly complete with {stats['assembly_files_processed']} files processed")
+        logger.info(f"Final documentation is available at: {os.path.abspath(assembly_output_dir)}")
+    
     logger.info(f"Documentation generation complete")
     logger.info(f"Files processed: {stats['total_files']}")
     logger.info(f"Documentation files generated: {stats['documentation_files_generated']}")
     logger.info(f"Files skipped: {stats['skipped_files']}")
     logger.info(f"Index files created: {stats['index_files']}")
     
-    logger.info(f"Documentation is available at: {os.path.abspath(args.output_dir)}")
+    # Determine the final documentation location
+    docs_location = os.path.abspath(assembly_output_dir) if args.final_assembly and assembly_output_dir else os.path.abspath(args.output_dir)
+    logger.info(f"Documentation is available at: {docs_location}")
 
 if __name__ == "__main__":
     main()
