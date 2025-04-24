@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.18.0] - 2025-04-26
+
+### Added
+- Logical View Diagrams Generator:
+  - UML class diagram generation showing inheritance, implementation, composition, and aggregation
+  - Object model diagrams showing instance relationships and runtime collaborations
+  - State diagrams for components with significant state transitions
+  - PlantUML and Mermaid syntax support for all diagram types
+  - Automatic layout optimization for complex diagrams
+  - Appropriate detail level selection based on codebase size
+  - Clustering for large class hierarchies
+  - Proper diagram titles, descriptions, and timestamps
+  - Comprehensive caching system for improved performance
+  - Repository-wide diagram generation capabilities
+
 ## [0.17.0] - 2025-04-26
 
 ### Added
