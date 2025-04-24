@@ -1,0 +1,115 @@
+# Repository Documentation Structure
+
+## Overview
+
+This documentation was automatically generated for the repository at `{{ repo_path }}`.
+
+**Total Files:** {{ total_files }}  
+**Generated:** {{ now|default('') }}
+
+## Repository Architecture
+
+This documentation is organized to reflect the logical structure of the codebase. The documentation is structured in the following ways:
+
+{% if has_architecture_view %}
+- **[Architecture View](architecture/index.md)**: Layered architectural perspective of the codebase
+{% endif %}
+{% if has_component_view %}
+- **[Component View](components/index.md)**: Functional components within the codebase
+{% endif %}
+- **Module View**: Organization by module/package structure
+- **File Documentation**: Detailed documentation for each file
+
+## Key Modules
+
+The codebase is organized into the following major modules:
+
+{% if logical_groups %}
+| Module | Files | Description |
+|--------|-------|-------------|
+{% for group_name, files in logical_groups.items() %}
+| **{{ group_name }}** | {{ files|length }} | {% if group_name == "root" %}Root level files{% else %}{{ group_name|capitalize }} module{% endif %} |
+{% endfor %}
+{% endif %}
+
+{% if frameworks %}
+## Frameworks & Libraries
+
+| Framework | Language | Version | Files |
+|-----------|----------|---------|-------|
+{% for framework in frameworks %}
+| **{{ framework.name }}** | {{ framework.language }} | {{ framework.version|default('Unknown') }} | {{ framework.count|default(0) }} |
+{% endfor %}
+{% endif %}
+
+{% if key_files %}
+## Key Files
+
+These files have the most relationships and are central to the codebase:
+
+| File | Relationships | Description |
+|------|---------------|-------------|
+{% for key_file in key_files %}
+| [{{ key_file.name }}]({{ key_file.path }}.md) | {{ key_file.relationship_count }} | {{ key_file.description|default('-') }} |
+{% endfor %}
+{% endif %}
+
+## Documentation Structure
+
+The documentation is organized hierarchically to help you navigate and understand the codebase:
+
+```
+docs/
+├── index.md                  # This main documentation index
+{% if has_architecture_view %}
+├── architecture/             # Architectural view
+│   └── index.md              # Architectural organization
+{% endif %}
+{% if has_component_view %}
+├── components/               # Component-based organization
+│   └── index.md              # Functional components
+{% endif %}
+├── modules/                  # Module-based organization
+{% if logical_groups %}
+{% for group_name, files in logical_groups.items() %}
+│   └── {{ group_name }}/     # {{ group_name|capitalize }} module documentation
+{% endfor %}
+{% endif %}
+└── ...                       # Individual file documentation
+```
+
+## Navigation
+
+- [Repository Architecture](#repository-architecture)
+- [Key Modules](#key-modules)
+{% if frameworks %}
+- [Frameworks & Libraries](#frameworks--libraries)
+{% endif %}
+{% if key_files %}
+- [Key Files](#key-files)
+{% endif %}
+- [Documentation Structure](#documentation-structure)
+
+{% if has_architecture_view %}
+### Architecture Navigation
+
+- [Architecture View](architecture/index.md)
+{% endif %}
+
+{% if has_component_view %}
+### Component Navigation
+
+- [Component View](components/index.md)
+{% endif %}
+
+### Module Navigation
+
+{% if logical_groups %}
+{% for group_name, files in logical_groups.items() %}
+- [{{ group_name|capitalize }} Module](modules/{{ group_name }}/index.md)
+{% endfor %}
+{% endif %}
+
+---
+
+*Documentation generated automatically by File Analyzer on {{ now|default('') }}*

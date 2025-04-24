@@ -1,0 +1,83 @@
+# Module: {{ module_name|capitalize }}
+
+## Overview
+
+{% if module_info.description %}
+{{ module_info.description }}
+{% else %}
+This documentation covers the {{ module_name|capitalize }} module.
+{% endif %}
+
+**Generated:** {{ now|default('') }}
+
+## Files
+
+{% if module_info.files %}
+This module contains the following files:
+
+{% for file in module_info.files %}
+- [{{ file|basename }}](../../{{ file }}.md)
+{% endfor %}
+{% else %}
+*No files directly in this module*
+{% endif %}
+
+{% if module_info.children %}
+## Submodules
+
+This module contains the following submodules:
+
+{% for submodule_name, submodule_info in module_info.children.items() %}
+### {{ submodule_name|capitalize }}
+
+{% if submodule_info.files %}
+Files:
+{% for file in submodule_info.files %}
+- [{{ file|basename }}](../../{{ file }}.md)
+{% endfor %}
+{% endif %}
+
+{% if submodule_info.children %}
+Submodules:
+{% for sub_submodule_name in submodule_info.children.keys() %}
+- {{ sub_submodule_name|capitalize }}
+{% endfor %}
+{% endif %}
+
+{% endfor %}
+{% endif %}
+
+## Module Structure
+
+```
+{{ module_name }}/
+{% if module_info.files %}{% for file in module_info.files %}
+├── {{ file|basename }}
+{% endfor %}{% endif %}
+{% if module_info.children %}{% for submodule_name, submodule_info in module_info.children.items() %}
+└── {{ submodule_name }}/
+{% if submodule_info.files %}{% for file in submodule_info.files %}
+    ├── {{ file|basename }}
+{% endfor %}{% endif %}
+{% if submodule_info.children %}{% for sub_submodule_name in submodule_info.children.keys() %}
+    └── {{ sub_submodule_name }}/
+        └── ...
+{% endfor %}{% endif %}
+{% endfor %}{% endif %}
+```
+
+## Navigation
+
+- [Back to Documentation Home](../../index.md)
+- [Files](#files)
+{% if module_info.children %}
+- [Submodules](#submodules)
+{% for submodule_name in module_info.children.keys() %}
+  - [{{ submodule_name|capitalize }}](#{{ submodule_name|lower }})
+{% endfor %}
+{% endif %}
+- [Module Structure](#module-structure)
+
+---
+
+*Documentation generated automatically by File Analyzer on {{ now|default('') }}*

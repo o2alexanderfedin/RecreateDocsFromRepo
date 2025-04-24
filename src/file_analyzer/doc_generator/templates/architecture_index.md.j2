@@ -1,0 +1,78 @@
+# Architecture View
+
+## Overview
+
+This document provides an architectural perspective of the codebase, organizing files by their role in the system's architecture.
+
+**Generated:** {{ now|default('') }}
+
+## Architectural Layers
+
+The system is organized into the following architectural layers:
+
+{% for layer_name, layer_info in architecture.layers.items() %}
+### {{ layer_name }} Layer
+
+{{ layer_info.description }}
+
+{% if layer_info.files %}
+#### Files
+
+{% for file in layer_info.files %}
+- [{{ file }}](../../{{ file }}.md)
+{% endfor %}
+{% else %}
+*No files identified in this layer*
+{% endif %}
+
+{% endfor %}
+
+## Cross-Cutting Concerns
+
+These aspects cut across multiple architectural layers:
+
+{% for concern_name, concern_info in architecture.cross_cutting.items() %}
+### {{ concern_name }}
+
+{{ concern_info.description }}
+
+{% if concern_info.files %}
+#### Files
+
+{% for file in concern_info.files %}
+- [{{ file }}](../../{{ file }}.md)
+{% endfor %}
+{% else %}
+*No files identified for this concern*
+{% endif %}
+
+{% endfor %}
+
+{% if architecture.frameworks %}
+## Technology Stack
+
+| Framework | Language | Version | Files |
+|-----------|----------|---------|-------|
+{% for framework in architecture.frameworks %}
+| **{{ framework.name }}** | {{ framework.language }} | {{ framework.version|default('Unknown') }} | {{ framework.count|default(0) }} |
+{% endfor %}
+{% endif %}
+
+## Navigation
+
+- [Back to Documentation Home](../index.md)
+- [Architectural Layers](#architectural-layers)
+{% for layer_name in architecture.layers.keys() %}
+  - [{{ layer_name }} Layer](#{{ layer_name|lower }}-layer)
+{% endfor %}
+- [Cross-Cutting Concerns](#cross-cutting-concerns)
+{% for concern_name in architecture.cross_cutting.keys() %}
+  - [{{ concern_name }}](#{{ concern_name|lower|replace(' ', '-') }})
+{% endfor %}
+{% if architecture.frameworks %}
+- [Technology Stack](#technology-stack)
+{% endif %}
+
+---
+
+*Documentation generated automatically by File Analyzer on {{ now|default('') }}*
