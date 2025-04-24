@@ -22,6 +22,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Mermaid syntax generation for all diagram types
   - Consistent caching across all generator types
   - Comprehensive statistics tracking for generated diagrams
+- Physical and Scenarios View Diagrams Generator:
+  - UML deployment diagrams showing hardware nodes and deployed artifacts
+  - Infrastructure diagrams showing cloud resources and connections
+  - Use case diagrams showing actors and system functionality
+  - User flow diagrams showing step-by-step user interactions
+  - AI-assisted extraction of deployment configurations
+  - Identification of cloud infrastructure resources
+  - Detection of actors and use cases from documentation and code
+  - Analysis of user interactions from UI files and tests
+  - Support for cloud-specific resources (AWS, Azure, GCP)
+  - Automatic relationships inference between components
+  - Mermaid syntax for all diagram types
+  - Proper diagram styling and labeling for clarity
+  - Caching system for improved performance
+  - Repository-wide diagram generation capabilities
+  - Complete implementation of UML 4+1 architectural view model
 
 ## [0.18.0] - 2025-04-26
 
