@@ -1,0 +1,51 @@
+# Component View
+
+## Overview
+
+This document organizes the codebase by functional components, grouping files that work together to provide specific functionality regardless of their location in the directory structure.
+
+**Generated:** {{ now|default('') }}
+
+## Components
+
+{% for component_name, component_info in components.items() %}
+### {{ component_name }}
+
+{{ component_info.description }}
+
+{% if component_info.files %}
+#### Files
+
+{% for file in component_info.files %}
+- [{{ file }}](../../{{ file }}.md)
+{% endfor %}
+{% else %}
+*No files identified in this component*
+{% endif %}
+
+{% endfor %}
+
+## Component Relationships
+
+The components interact with each other in various ways:
+
+```
+[Component Interaction Diagram]
+
+{% for component_name in components.keys() %}
+{{ component_name }}{% if not loop.last %} --> {% endif %}
+{%- endfor %}
+```
+
+## Navigation
+
+- [Back to Documentation Home](../index.md)
+- [Components](#components)
+{% for component_name in components.keys() %}
+  - [{{ component_name }}](#{{ component_name|lower|replace(' ', '-') }})
+{% endfor %}
+- [Component Relationships](#component-relationships)
+
+---
+
+*Documentation generated automatically by File Analyzer on {{ now|default('') }}*
