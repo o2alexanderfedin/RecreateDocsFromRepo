@@ -3,6 +3,7 @@ Mock AI provider for testing.
 """
 import os
 import re
+import json
 from typing import Dict, Any, List, Optional
 
 from file_analyzer.ai_providers.provider_interface import AIModelProvider
@@ -12,6 +13,52 @@ from file_analyzer.ai_providers.provider_interface import AIModelProvider
 
 class MockAIProvider(AIModelProvider):
     """Mock AI provider implementation for testing."""
+    
+    # Common environment variable patterns
+    ENV_VAR_PATTERNS = [
+        r'\${[A-Za-z0-9_]+}',           # ${VAR_NAME}
+        r'\$[A-Za-z0-9_]+',              # $VAR_NAME
+        r'%[A-Za-z0-9_]+%',              # %VAR_NAME%
+        r'{{[A-Za-z0-9_]+}}',            # {{VAR_NAME}}
+        r'\b[A-Z0-9_]{3,}\b(?=\s*[=:])'  # VAR_NAME= or VAR_NAME:
+    ]
+    
+    # Common security issue patterns
+    SECURITY_PATTERNS = {
+        "hardcoded_password": [
+            r'password["\']\s*:\s*["\'][^"\']+["\']',
+            r'password\s*=\s*["\'][^"\']+["\']',
+            r'pwd\s*=\s*["\'][^"\']+["\']',
+            r'secret\s*=\s*["\'][^"\']+["\']'
+        ],
+        "api_key": [
+            r'key["\']\s*:\s*["\'][A-Za-z0-9+/]{32,}["\']',
+            r'api[_-]?key\s*=\s*["\'][A-Za-z0-9+/]{16,}["\']',
+            r'token\s*=\s*["\'][A-Za-z0-9+/]{16,}["\']'
+        ],
+        "connection_string": [
+            r'(?i)(?:jdbc|odbc|mongodb|postgresql|mysql|sqlserver)://[^\s"\'>]+',
+            r'(?i)Data Source=[^\s"\'>;]+'
+        ],
+        "insecure_protocol": [
+            r'(?i)http://(?!localhost|127\.0\.0\.1)',
+            r'(?i)ftp://'
+        ]
+    }
+    
+    # Framework detection patterns for configs
+    CONFIG_FRAMEWORK_PATTERNS = {
+        "django": [r'INSTALLED_APPS', r'MIDDLEWARE', r'DATABASES\s*=', r'DEBUG\s*='],
+        "flask": [r'FLASK_APP', r'FLASK_ENV', r'SECRET_KEY'],
+        "spring": [r'spring\.', r'logging\.level\.org\.springframework'],
+        "react": [r'react', r'jsx', r'componentDidMount'],
+        "angular": [r'angular', r'ng\w+'],
+        "docker": [r'image:', r'container_name:', r'volumes:'],
+        "kubernetes": [r'apiVersion:', r'kind:\s*(?:Pod|Deployment|Service)'],
+        "aws": [r'aws_', r'region', r'availability_zone'],
+        "terraform": [r'provider\s*"', r'resource\s*"'],
+        "nginx": [r'server_name', r'listen\s+\d+', r'location\s+/']
+    }
     
     def analyze_content(self, file_path: str, content: str) -> Dict[str, Any]:
         """
@@ -758,3 +805,356 @@ class MockAIProvider(AIModelProvider):
                 })
         
         return frameworks
+        
+    def analyze_config(self, file_path: str, content: str, format_hint: str = None) -> Dict[str, Any]:
+        """
+        Analyze a configuration file to extract parameters, structure, and purpose.
+        
+        Args:
+            file_path: Path to the file being analyzed
+            content: Content of the file to analyze
+            format_hint: Optional hint about the configuration format
+            
+        Returns:
+            Dictionary with configuration analysis results
+        """
+        # Determine format based on file extension or hint
+        config_format = format_hint
+        if not config_format:
+            if file_path.endswith(('.json')):
+                config_format = 'json'
+            elif file_path.endswith(('.yml', '.yaml')):
+                config_format = 'yaml'  # Always use 'yaml' regardless of specific extension
+            elif file_path.endswith(('.xml')):
+                config_format = 'xml'
+            elif file_path.endswith(('.properties', '.conf', '.ini', '.env')):
+                config_format = 'properties'
+            elif file_path.endswith(('.toml')):
+                config_format = 'toml'
+            else:
+                # Try to determine format from content
+                content_lower = content.lower()
+                if content.strip().startswith('{') and content.strip().endswith('}'):
+                    config_format = 'json'
+                elif '<?xml' in content_lower or '<config' in content_lower:
+                    config_format = 'xml'
+                elif '=' in content and not content.strip().startswith('{'):
+                    config_format = 'properties'
+                elif ':' in content and '-' in content and not '{' in content:
+                    config_format = 'yaml'
+                else:
+                    # Default to unknown
+                    config_format = 'unknown'
+        
+        # Check if this is actually a config file
+        is_config_file = True
+        if file_path.endswith(('.py', '.js', '.ts', '.java', '.c', '.cpp', '.go')):
+            # Code files with specific config patterns (like settings.py)
+            if not any(re.search(pattern, content) for framework in self.CONFIG_FRAMEWORK_PATTERNS.values() 
+                       for pattern in framework):
+                is_config_file = False
+                return {
+                    "is_config_file": False,
+                    "format": "unknown",
+                    "error": "Not a configuration file",
+                    "confidence": 0.8
+                }
+        
+        # Extract parameters based on format
+        parameters = []
+        if config_format == 'json':
+            try:
+                # Parse JSON for parameters
+                json_data = json.loads(content)
+                parameters = self._extract_json_parameters(json_data)
+            except json.JSONDecodeError:
+                return {
+                    "is_config_file": True,
+                    "format": "json",
+                    "error": "Invalid JSON format",
+                    "parameters": [],
+                    "environment_vars": [],
+                    "security_issues": [],
+                    "confidence": 0.5
+                }
+        elif config_format == 'yaml':
+            # Simple YAML parameter extraction (mocked)
+            parameters = self._extract_yaml_parameters(content)
+        elif config_format == 'properties':
+            # Extract key-value pairs from properties
+            parameters = self._extract_properties_parameters(content)
+        elif config_format == 'xml':
+            # Extract XML elements (mocked)
+            parameters = self._extract_xml_parameters(content)
+        
+        # Detect environment variables
+        env_vars = []
+        for pattern in self.ENV_VAR_PATTERNS:
+            env_vars.extend(re.findall(pattern, content))
+        
+        # Detect security issues
+        security_issues = []
+        for issue_type, patterns in self.SECURITY_PATTERNS.items():
+            for pattern in patterns:
+                matches = re.findall(pattern, content)
+                for match in matches:
+                    security_issues.append({
+                        "type": issue_type,
+                        "value": match,
+                        "severity": "high" if issue_type in ["hardcoded_password", "api_key"] else "medium"
+                    })
+        
+        # Detect framework
+        framework = self._detect_config_framework(content)
+        
+        # Build result
+        return {
+            "is_config_file": is_config_file,
+            "format": config_format,
+            "parameters": parameters,
+            "environment_vars": env_vars,
+            "security_issues": security_issues,
+            "framework": framework["name"] if framework else None,
+            "framework_confidence": framework["confidence"] if framework else 0.0,
+            "confidence": 0.9
+        }
+    
+    def _extract_json_parameters(self, json_data, prefix=""):
+        """Extract parameters from JSON data with dot notation paths."""
+        parameters = []
+        
+        if isinstance(json_data, dict):
+            for key, value in json_data.items():
+                path = f"{prefix}.{key}" if prefix else key
+                
+                if isinstance(value, (dict, list)):
+                    # Recurse into nested structures
+                    parameters.extend(self._extract_json_parameters(value, path))
+                else:
+                    # Add leaf node as parameter
+                    parameter_type = self._determine_parameter_type(value)
+                    parameters.append({
+                        "path": path,
+                        "value": str(value) if value is not None else None,
+                        "type": parameter_type,
+                        "description": f"Configuration parameter for {path}"
+                    })
+                    
+        elif isinstance(json_data, list):
+            for i, item in enumerate(json_data):
+                path = f"{prefix}[{i}]"
+                if isinstance(item, (dict, list)):
+                    parameters.extend(self._extract_json_parameters(item, path))
+                else:
+                    parameter_type = self._determine_parameter_type(item)
+                    parameters.append({
+                        "path": path,
+                        "value": str(item) if item is not None else None,
+                        "type": parameter_type,
+                        "description": f"List item at index {i}"
+                    })
+                    
+        return parameters
+    
+    def _extract_yaml_parameters(self, content):
+        """Simple extraction of parameters from YAML content (mocked)."""
+        parameters = []
+        lines = content.split('\n')
+        current_prefix = []
+        indentation_stack = [-1]  # Start with imaginary root level
+        
+        for line in lines:
+            stripped = line.strip()
+            if not stripped or stripped.startswith('#'):
+                continue
+                
+            # Count indentation
+            indentation = len(line) - len(line.lstrip())
+            
+            # Determine key and value
+            if ':' in stripped:
+                key, value = stripped.split(':', 1)
+                key = key.strip()
+                value = value.strip()
+                
+                # Adjust prefix stack based on indentation
+                while indentation <= indentation_stack[-1] and len(indentation_stack) > 1:
+                    indentation_stack.pop()
+                    current_prefix.pop()
+                
+                # If this is the first time we see this indentation level, add it
+                if indentation > indentation_stack[-1]:
+                    indentation_stack.append(indentation)
+                    current_prefix.append(key)
+                else:
+                    # Replace the last prefix component
+                    current_prefix[-1] = key
+                
+                # Skip if this is just a parent node with no value
+                if not value or value == '-':
+                    continue
+                    
+                # Build the full path
+                path = '.'.join(current_prefix[:-1] + [key])
+                
+                # Determine type
+                param_type = self._determine_parameter_type(value)
+                
+                # Add parameter
+                parameters.append({
+                    "path": path,
+                    "value": value,
+                    "type": param_type,
+                    "description": f"Configuration parameter for {path}"
+                })
+        
+        return parameters
+    
+    def _extract_properties_parameters(self, content):
+        """Extract parameters from properties file format."""
+        parameters = []
+        lines = content.split('\n')
+        
+        for line in lines:
+            stripped = line.strip()
+            if not stripped or stripped.startswith('#'):
+                continue
+                
+            if '=' in stripped:
+                key, value = stripped.split('=', 1)
+                key = key.strip()
+                value = value.strip()
+                
+                # Determine parameter type
+                param_type = self._determine_parameter_type(value)
+                
+                # Add parameter
+                parameters.append({
+                    "path": key,
+                    "value": value,
+                    "type": param_type,
+                    "description": f"Configuration parameter {key}"
+                })
+        
+        return parameters
+    
+    def _extract_xml_parameters(self, content):
+        """Extract parameters from XML content (mocked)."""
+        parameters = []
+        # Simple regex-based extraction for testing
+        element_pattern = r'<([a-zA-Z0-9_.-]+)>(.*?)</\1>'
+        nested_elements = {}
+        
+        for match in re.finditer(element_pattern, content, re.DOTALL):
+            tag, value = match.groups()
+            value = value.strip()
+            
+            # Skip nested elements
+            if re.search(element_pattern, value):
+                nested_elements[tag] = value
+                continue
+                
+            # Determine parameter type
+            param_type = self._determine_parameter_type(value)
+            
+            # Add parameter
+            parameters.append({
+                "path": tag,
+                "value": value,
+                "type": param_type,
+                "description": f"XML element {tag}"
+            })
+            
+        # Process nested elements
+        for parent, nested_content in nested_elements.items():
+            for match in re.finditer(element_pattern, nested_content):
+                tag, value = match.groups()
+                value = value.strip()
+                
+                # Skip doubly-nested elements
+                if re.search(element_pattern, value):
+                    continue
+                    
+                # Determine parameter type
+                param_type = self._determine_parameter_type(value)
+                
+                # Add parameter with parent prefix
+                parameters.append({
+                    "path": f"{parent}.{tag}",
+                    "value": value,
+                    "type": param_type,
+                    "description": f"Nested XML element {parent}.{tag}"
+                })
+        
+        return parameters
+    
+    def _determine_parameter_type(self, value):
+        """Determine the type of a parameter value."""
+        if value is None:
+            return "null"
+        
+        # Try to determine if it's a boolean
+        if isinstance(value, str):
+            if value.lower() in ('true', 'false', 'yes', 'no', 'on', 'off'):
+                return "boolean"
+            
+            # Check if it's a number
+            try:
+                if '.' in value:
+                    float(value)
+                    return "float"
+                else:
+                    int(value)
+                    return "integer"
+            except (ValueError, TypeError):
+                pass
+                
+            # Check if it's a connection string
+            if 'jdbc:' in value or 'mongodb://' in value or 'postgresql://' in value:
+                return "connection_string"
+                
+            # Check if it's a path/file
+            if value.startswith('/') or value.startswith('./') or ':\\' in value:
+                return "file_path"
+                
+            # Check if it's a URL
+            if value.startswith(('http://', 'https://', 'ftp://')):
+                return "url"
+                
+            # Check if it's an environment variable
+            if any(re.search(pattern, value) for pattern in self.ENV_VAR_PATTERNS):
+                return "environment_variable"
+                
+            # Default to string
+            return "string"
+        
+        # Handle non-string types
+        if isinstance(value, bool):
+            return "boolean"
+        elif isinstance(value, int):
+            return "integer"
+        elif isinstance(value, float):
+            return "float"
+        elif isinstance(value, list):
+            return "array"
+        elif isinstance(value, dict):
+            return "object"
+        else:
+            return "unknown"
+    
+    def _detect_config_framework(self, content):
+        """Detect framework based on configuration content."""
+        for framework, patterns in self.CONFIG_FRAMEWORK_PATTERNS.items():
+            matches = 0
+            for pattern in patterns:
+                if re.search(pattern, content, re.IGNORECASE | re.MULTILINE):
+                    matches += 1
+            
+            # If more than half of the patterns match, consider it a match
+            if matches >= max(1, len(patterns) // 2):
+                return {
+                    "name": framework.capitalize(),
+                    "confidence": min(0.5 + (matches / len(patterns) * 0.5), 0.95)
+                }
+        
+        return None

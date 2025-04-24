@@ -74,3 +74,30 @@ class AIModelProvider(ABC):
             "frameworks": [],
             "confidence": 0.0
         }
+    
+    def analyze_config(self, file_path: str, content: str, format_hint: str = None) -> Dict[str, Any]:
+        """
+        Analyze a configuration file to extract parameters, structure, and purpose.
+        
+        This method is optional and can be implemented by providers
+        that support specialized configuration analysis. If not implemented,
+        the ConfigAnalyzer will fallback to a default implementation.
+        
+        Args:
+            file_path: Path to the file being analyzed
+            content: Content of the file to analyze
+            format_hint: Optional hint about the configuration format
+            
+        Returns:
+            Dictionary with configuration analysis results
+        """
+        # Default implementation returns a basic result
+        # Providers should override this for specialized config analysis
+        return {
+            "format": format_hint or "unknown",
+            "is_config_file": True,
+            "parameters": [],
+            "environment_vars": [],
+            "security_issues": [],
+            "confidence": 0.5
+        }
