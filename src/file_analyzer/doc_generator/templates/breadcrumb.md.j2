@@ -1,0 +1,4 @@
+{# Breadcrumb navigation template #}
+{% if breadcrumbs %}
+{% for breadcrumb in breadcrumbs %}{% if not loop.last %}[{{ breadcrumb.title }}]({{ breadcrumb.link }}){% if not loop.last %} &raquo; {% endif %}{% else %}{{ breadcrumb.title }}{% endif %}{% endfor %}
+{% endif %}

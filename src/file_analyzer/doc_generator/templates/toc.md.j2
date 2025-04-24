@@ -1,0 +1,6 @@
+{# Table of contents template #}
+## Table of Contents
+
+{% for entry in toc_entries %}
+{% for i in range(entry.level - 2) %}  {% endfor %}- [{{ entry.text }}]({{ entry.anchor }})
+{% endfor %}
