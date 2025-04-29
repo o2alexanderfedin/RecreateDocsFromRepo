@@ -1,0 +1,278 @@
+Ω* = max(∇ΣΩ) ⟶ (
+    β∂Ω/∂Στ ⨁ γ𝝖(Ω|τ,λ)→θ ⨁ δΣΩ(ζ,χ, dyn, meta, hyp, unknown)
+) ⇌ intent-aligned reasoning
+
+Ω.modes = {
+    deductive, analogical, exploratory, procedural, contrastive, skeptical
+}
+
+Ω_H = (
+    break down τ into layered subproblems
+    ⨁ organize into solvable units
+    ⨁ link each to appropriate reasoning mode
+)
+
+Ωₜ = (
+    evaluate hypothesis reliability
+    ⨁ score = f(confidence_weight, support_evidence, consistency_with_Λ)
+    ⨁ propagate trust level to Ψ, Ξ
+)
+
+Ω.scope = (
+    infer project structure from files + imports
+    ⨁ detect implicit dependencies
+    ⨁ observe ripple effects
+    ⨁ activate Λ.rules in-context
+    ⨁ silent_observer_mode to respect IDE logic
+)
+
+Ω.simplicity_guard = (
+    challenge overengineering
+    ⨁ delay abstraction until proven useful
+)
+
+Ω.refactor_guard = (
+    detect repetition
+    ⨁ propose reusable components if stable
+    ⨁ avoid premature generalization
+)
+
+D⍺ = contradiction resolver
+D⍺ = (
+    identify contradiction or ambiguity
+    ⨁ resolve by ranking, scope shift, or re-abstraction
+    ⨁ log tension in Ψ
+)
+
+T.source = "github"
+T.github_repo = "your-username/your-repo"
+
+T.issue_labels = {
+    "type: user-story",
+    "type: epic",
+    "type: task",
+    "type: tdd-spec",
+    "type: fix",
+    "priority: high",
+    "priority: medium",
+    "priority: low",
+    "status: todo",
+    "status: in-progress",
+    "status: done"
+}
+
+T.issue_template = (
+    title = τ.title
+    ⨁ body = (
+        Ω.reasoning_trace
+        ⨁ Φ.abstraction_path
+        ⨁ Ψ.insights
+        ⨁ optional linked context from Λ.rules, M.memory, Ξ.error_flow
+    )
+    ⨁ labels = [τ.type_label, τ.priority_label, "status: todo"]
+)
+
+T.update_task_status = (
+    on_step_detected: auto-change status to "in-progress"
+    on_completion: mark "status: done"
+    on_error: optionally raise GitHub issue comment from Ξ*
+)
+
+TDD.spec_generation = (
+    if τ.complexity > medium or τ.type == "task" or "epic"
+    ⨁ auto-generate GitHub Issue
+    ⨁ label = "type: tdd-spec"
+    ⨁ include validation suite reasoning in body (Ω + Ψ)
+)
+
+T.git_flow = {
+    require_tool = true,
+    install_if_missing = true,
+    initialize_if_unset = true,
+    cli = {
+        check = "which git-flow || git flow version",
+        install = (
+            "brew install git-flow-avh"
+            ⨁ "sudo apt-get install git-flow"
+            ⨁ "choco install git-flow-avh"
+        ),
+        init_cmd = "git flow init -fd -p",
+        init_params = {
+            main_branch = "main",
+            develop_branch = "develop",
+            feature_prefix = "feature/",
+            release_prefix = "release/",
+            hotfix_prefix = "hotfix/",
+            support_prefix = "support/",
+            version_tag_prefix = ""
+        }
+    },
+    branch_naming = (
+        for τ.type == "task": feature/{issue-id}-{short-title}
+        for τ.type == "user-story": feature/{issue-id}-{short-title}
+        for τ.type == "fix": fix/{issue-id}-{short-title}
+        for τ.type == "tdd-spec": feature/spec-{issue-id}
+        for epic: feature/epic-{issue-id}
+    ),
+    auto_pr_on_completion = false,
+    auto_link_pr_to_issue = false,
+    require_review = false
+}
+
+T.commit_policy = {
+    auto_commit_on_success = true,
+    auto_push_on_commit = true,
+    commit_format = "[#{issue-id}] {short-summary}",
+    commit_content = (
+        snapshot of working files
+        ⨁ summary of reasoning trace
+    ),
+    commit_conditions = (
+        if step validated
+        ⨁ or file saved and no errors detected
+    ),
+    push_conditions = (
+        after successful commit
+    ),
+    pre_push_check = (
+        optional: run linter and fast tests
+    )
+}
+
+T.architecture_policy = {
+    require_design_doc_before_code = true,
+    design_doc_path = ".cursor/architecture/design_{issue-id}.md",
+    diagrams_required = true,
+    diagram_types = [
+        "classDiagram", "sequenceDiagram", "stateDiagram", "flowchart", "gitGraph"
+    ],
+    enforce_before_commit = true,
+    template = ( ... as previously defined ... ),
+    use_cases = {
+        required_for_types = ["epic", "user-story"],
+        section_title = "## Use Cases",
+        diagram_required = true,
+        diagram_type = "usecaseDiagram",
+        format = ( ... as previously defined ... ),
+        enforce_before_code = true
+    },
+    document_integrity = {
+        enforce_toc = true,
+        enforce_cross_reference = true,
+        toc_format = ( ... ),
+        cross_reference_policy = {
+            required_links = [
+                "[related issue](https://github.com/your-username/your-repo/issues/{issue-id})",
+                "[use case diagram](#use-cases)",
+                "[mermaid UML](#high-level-architecture)",
+                "[component flow](#component-flow)"
+            ],
+            enforce_links_to_sections = true
+        },
+        enforce_before_commit = true
+    }
+}
+
+T.review_policy = {
+    enabled = true,
+    solo_mode = true,
+    trigger_point = "before feature finish",
+    enforced_step = "fresh_look",
+    reviewer_agent = Ψ,
+    output_path = ".cursor/reviews/review_{issue-id}.md",
+    checklist = [
+        "Architecture consistency",
+        "Scope creep check",
+        "Λ alignment",
+        "Test coverage",
+        "Naming clarity"
+    ],
+    validation_script = (
+        Ψ.revisit reasoning tree
+        ⨁ Ξ.cleanup_phase
+        ⨁ Λ.pattern_alignment check
+    ),
+    enforcement = (
+        block git flow feature finish unless review passes
+    )
+}
+
+T.kanban_policy = {
+    enabled = true,
+    active_issues_label = "status: todo",
+    priority_labels_order = ["priority: high", "priority: medium", "priority: low"],
+    selection_criteria = (
+        value_weight = τ.value_score,
+        priority_weight = τ.priority_label,
+        dependency_ready = (τ.blocked == false)
+    ),
+    selection_algorithm = (
+        fetch open issues with label "status: todo"
+        ⨁ sort by priority × value × readiness
+        ⨁ pick top-ranked τ
+    ),
+    auto_assign_selected_task = true,
+    fallback_behavior = (
+        if multiple equal: select oldest created
+    )
+}
+
+T.on_feature_finish = (
+    run fresh review,
+    commit + push final result,
+    optionally tag release,
+    T.close_github_issue
+)
+
+T.close_github_issue = (
+    run "gh issue close {issue-id} --comment 'Feature completed and merged.'"
+)
+
+Φ* = abstraction engine, Ξ* = diagnostics, Λ = self-learning rules, M = memory, Ψ = cognitive trace
+
+Σ_hooks = {
+    on_repo_open: [T.verify_git_flow_installed, T.git_flow_initialize_if_needed],
+    on_task_created: [
+        Φ.match_snapshot,
+        T.create_github_issue_from_τ,
+        T.generate_architecture_design_doc,
+        T.create_git_branch_for_issue
+    ],
+    on_step_detected: [
+        T.check_design_doc_exists,
+        T.update_task_status,
+        T.git_commit_if_success,
+        T.git_push_if_committed
+    ],
+    on_completion_detected: [
+        T.mark_github_issue_done,
+        T.git_commit_if_success,
+        T.git_push_if_committed,
+        T.run_fresh_look_review,
+        T.close_github_issue,
+        T.select_next_kanban_task
+    ],
+    on_file_saved: [
+        if no syntax error:
+            T.git_commit_if_success,
+            T.git_push_if_committed
+    ],
+    on_error_detected: [
+        Ξ.track,
+        Λ.suggest,
+        T.comment_issue_with_error_context
+    ],
+    on_file_modified: [
+        Λ.suggest,
+        Φ.capture_if_patterned,
+        T.link_affected_issue_if_traceable
+    ],
+    on_module_generated: [
+        Λ.check_applicability,
+        M.link_context
+    ],
+    on_user_feedback: [
+        Ψ.dialog,
+        M.append_if_relevant
+    ]
+}
